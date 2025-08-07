@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>MEF - Área Logada Adm</title>
+  <title>MEF - Área Logada</title>
   
   <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
@@ -17,7 +17,7 @@
   <!-- Navbar -->
   <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
     <div class="container">
-      <a class="navbar-brand" href="logado-Adm.html">MEF</a>
+      <a class="navbar-brand" href="logado.php">MEF</a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent"
         aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
@@ -42,7 +42,7 @@
             <i class="bi bi-person-circle me-1"></i> Menu
           </button>
           <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
-            <li><a class="dropdown-item" href="videos-apoio-Adm.html">Vídeos de Apoio</a></li>
+            <li><a class="dropdown-item" href="videos-apoio.php">Vídeos de Apoio</a></li>
             <li class="dropdown-submenu">
               <a class="dropdown-item d-flex justify-content-between align-items-center submenu-toggle" 
                  href="#" 
@@ -50,14 +50,14 @@
                 Profissionais <i class="bi bi-chevron-down small"></i>
               </a>
               <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="agendamento-Adm.html">Agendar Consulta</a></li>
-                <li><a class="dropdown-item" href="bate-papo-Adm.html">Bate-Papo</a></li>
-                <li><a class="dropdown-item" href="meus-agendamentos-Adm.html">Meus Agendamentos</a></li>
+                <li><a class="dropdown-item" href="agendamento.php">Agendar Consulta</a></li>
+                <li><a class="dropdown-item" href="bate-papo.php">Bate-Papo</a></li>
+                <li><a class="dropdown-item" href="meus-agendamentos.php">Meus Agendamentos</a></li>
               </ul>
             </li>
-            <li><a class="dropdown-item" href="perfil-Adm.html">Perfil de Usuário</a></li>
+            <li><a class="dropdown-item" href="perfil.php">Perfil de Usuário</a></li>
             <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item text-danger" href="../index.html">Sair</a></li>
+            <li><a class="dropdown-item text-danger" href="../index.php">Sair</a></li>
           </ul>
         </div>
       </div>
@@ -70,10 +70,10 @@
     <section id="home" class="gradient-card d-flex align-items-center justify-content-center text-center text-white py-5" style="min-height: 100vh;">
       <div class="container">
         <h1 class="display-4 fw-bold mb-4">Bem-vindo(a) ao MEF</h1>
-        <h2 class="h3 mb-5">Área do Usuário Adm</h2>
+        <h2 class="h3 mb-5">Área do Usuário</h2>
         <div class="d-flex justify-content-center gap-3">
-          <a href="agendamento-Adm.html" class="btn btn-primary btn-lg">Agendar Consulta</a>
-          <a href="bate-papo-Adm.html" class="btn btn-outline-light btn-lg">Bate-Papo</a>
+          <a href="agendamento.php" class="btn btn-primary btn-lg">Agendar Consulta</a>
+          <a href="bate-papo.php" class="btn btn-outline-light btn-lg">Bate-Papo</a>
         </div>
       </div>
     </section>
@@ -112,7 +112,7 @@
               <div class="card-body text-center">
                 <h5 class="card-title">Gabriel da Vila</h5>
                 <p class="card-text text-muted">Nutricionista Esportivo</p>
-                <a href="agendamento-Adm.html" class="btn btn-sm btn-primary">Agendar Consulta</a>
+                <a href="agendamento.php" class="btn btn-sm btn-primary">Agendar Consulta</a>
               </div>
             </div>
           </div>
@@ -124,7 +124,7 @@
               <div class="card-body text-center">
                 <h5 class="card-title">Gustavo Silva</h5>
                 <p class="card-text text-muted">Personal Trainer</p>
-                <a href="agendamento-Adm.html" class="btn btn-sm btn-primary">Agendar Consulta</a>
+                <a href="agendamento.php" class="btn btn-sm btn-primary">Agendar Consulta</a>
               </div>
             </div>
           </div>
@@ -136,7 +136,7 @@
               <div class="card-body text-center">
                 <h5 class="card-title">Julio Ribeiro</h5>
                 <p class="card-text text-muted">Endocrinologista</p>
-                <a href="agendamento-Adm.html" class="btn btn-sm btn-primary">Agendar Consulta</a>
+                <a href="agendamento.php" class="btn btn-sm btn-primary">Agendar Consulta</a>
               </div>
             </div>
           </div>
@@ -148,7 +148,7 @@
               <div class="card-body text-center">
                 <h5 class="card-title">Miqueias</h5>
                 <p class="card-text text-muted">Psicólogo</p>
-                <a href="agendamento-Adm.html" class="btn btn-sm btn-primary">Agendar Consulta</a>
+                <a href="agendamento.php" class="btn btn-sm btn-primary">Agendar Consulta</a>
               </div>
             </div>
           </div>
@@ -193,7 +193,10 @@
     </div>
   </footer>
 
+  <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <!-- Seus scripts -->
   <script type="module" src="../js/main.js"></script>
 </body>
 </html>

@@ -14,7 +14,7 @@
   <!-- Navbar -->
   <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
     <div class="container">
-      <a class="navbar-brand" href="logado.html">MEF</a>
+      <a class="navbar-brand" href="logado.php">MEF</a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent"
         aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
@@ -23,13 +23,13 @@
       <div class="collapse navbar-collapse" id="navbarContent">
         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
           <li class="nav-item">
-            <a class="nav-link" href="logado.html#sobre">Sobre</a>
+            <a class="nav-link" href="logado.php#sobre">Sobre</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="logado.html#profissionais">Profissionais</a>
+            <a class="nav-link" href="logado.php#profissionais">Profissionais</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="logado.html#fale-conosco">Fale Conosco</a>
+            <a class="nav-link" href="logado.php#fale-conosco">Fale Conosco</a>
           </li>
         </ul>
 
@@ -38,7 +38,7 @@
             <i class="bi bi-person-circle me-1"></i> Menu
           </button>
           <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
-            <li><a class="dropdown-item" href="videos-apoio.html">Vídeos de Apoio</a></li>
+            <li><a class="dropdown-item" href="videos-apoio.php">Vídeos de Apoio</a></li>
             <li class="dropdown-submenu">
               <a class="dropdown-item d-flex justify-content-between align-items-center submenu-toggle" 
                  href="#" 
@@ -46,14 +46,14 @@
                 Profissionais <i class="bi bi-chevron-down small"></i>
               </a>
               <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="agendamento.html">Agendar Consulta</a></li>
-                <li><a class="dropdown-item" href="bate-papo.html">Bate-Papo</a></li>
-                <li><a class="dropdown-item" href="meus-agendamentos.html">Meus Agendamentos</a></li>
+                <li><a class="dropdown-item" href="agendamento.php">Agendar Consulta</a></li>
+                <li><a class="dropdown-item" href="bate-papo.php">Bate-Papo</a></li>
+                <li><a class="dropdown-item" href="meus-agendamentos.php">Meus Agendamentos</a></li>
               </ul>
             </li>
-            <li><a class="dropdown-item" href="perfil.html">Perfil de Usuário</a></li>
+            <li><a class="dropdown-item" href="perfil.php">Perfil de Usuário</a></li>
             <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item text-danger" href="../index.html">Sair</a></li>
+            <li><a class="dropdown-item text-danger" href="../index.php">Sair</a></li>
           </ul>
         </div>
       </div>
@@ -78,7 +78,7 @@
               </div>
             </div>
             <p class="mb-3">Especialista em nutrição esportiva com 10 anos de experiência.</p>
-            <a href="conversa.html?prof=gabriel" class="btn btn-primary w-100">
+            <a href="conversa.php?prof=gabriel" class="btn btn-primary w-100">
               <i class="bi bi-chat-left-text"></i> Conversar
             </a>
           </div>
@@ -95,7 +95,7 @@
               </div>
             </div>
             <p class="mb-3">Especialista em terapia cognitivo-comportamental.</p>
-            <a href="conversa.html?prof=carlos" class="btn btn-primary w-100">
+            <a href="conversa.php?prof=carlos" class="btn btn-primary w-100">
               <i class="bi bi-chat-left-text"></i> Conversar
             </a>
           </div>

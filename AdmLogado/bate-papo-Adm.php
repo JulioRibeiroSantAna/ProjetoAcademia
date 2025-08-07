@@ -92,7 +92,7 @@
   <!-- Navbar -->
   <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
     <div class="container">
-      <a class="navbar-brand" href="logado-Adm.html">MEF</a>
+      <a class="navbar-brand" href="logado-Adm.php">MEF</a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent"
         aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
@@ -101,13 +101,13 @@
       <div class="collapse navbar-collapse" id="navbarContent">
         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
           <li class="nav-item">
-            <a class="nav-link" href="logado-Adm.html#sobre">Sobre</a>
+            <a class="nav-link" href="logado-Adm.php#sobre">Sobre</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="logado-Adm.html#profissionais">Profissionais</a>
+            <a class="nav-link" href="logado-Adm.php#profissionais">Profissionais</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="logado-Adm.html#fale-conosco">Fale Conosco</a>
+            <a class="nav-link" href="logado-Adm.php#fale-conosco">Fale Conosco</a>
           </li>
         </ul>
 
@@ -116,7 +116,7 @@
             <i class="bi bi-person-circle me-1"></i> Menu
           </button>
           <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
-            <li><a class="dropdown-item" href="videos-apoio-Adm.html">Vídeos de Apoio</a></li>
+            <li><a class="dropdown-item" href="videos-apoio-Adm.php">Vídeos de Apoio</a></li>
             <li class="dropdown-submenu">
               <a class="dropdown-item d-flex justify-content-between align-items-center submenu-toggle" 
                  href="#" 
@@ -124,14 +124,14 @@
                 Profissionais <i class="bi bi-chevron-down small"></i>
               </a>
               <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="agendamento-Adm.html">Agendar Consulta</a></li>
-                <li><a class="dropdown-item" href="bate-papo-Adm.html">Bate-Papo</a></li>
-                <li><a class="dropdown-item" href="meus-agendamentos-Adm.html">Meus Agendamentos</a></li>
+                <li><a class="dropdown-item" href="agendamento-Adm.php">Agendar Consulta</a></li>
+                <li><a class="dropdown-item" href="bate-papo-Adm.php">Bate-Papo</a></li>
+                <li><a class="dropdown-item" href="meus-agendamentos-Adm.php">Meus Agendamentos</a></li>
               </ul>
             </li>
-            <li><a class="dropdown-item" href="perfil-Adm.html">Perfil de Usuário</a></li>
+            <li><a class="dropdown-item" href="perfil-Adm.php">Perfil de Usuário</a></li>
             <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item text-danger" href="../index.html">Sair</a></li>
+            <li><a class="dropdown-item text-danger" href="../index.php">Sair</a></li>
           </ul>
         </div>
       </div>
@@ -173,7 +173,7 @@
             </div>
             <p class="mb-3">Especialista em nutrição esportiva com 10 anos de experiência.</p>
             <div class="d-flex justify-content-between">
-              <a href="conversa-Adm.html?prof=gabriel" class="btn btn-primary flex-grow-1 me-2">
+              <a href="conversa-Adm.php?prof=gabriel" class="btn btn-primary flex-grow-1 me-2">
                 <i class="bi bi-chat-left-text"></i> Conversar
               </a>
               <button class="btn btn-outline-light" data-bs-toggle="collapse" data-bs-target="#horariosGabriel">
@@ -216,7 +216,7 @@
             </div>
             <p class="mb-3">Especialista em terapia cognitivo-comportamental.</p>
             <div class="d-flex justify-content-between">
-              <a href="conversa-Adm.html?prof=carlos" class="btn btn-primary flex-grow-1 me-2">
+              <a href="conversa-Adm.php?prof=carlos" class="btn btn-primary flex-grow-1 me-2">
                 <i class="bi bi-chat-left-text"></i> Conversar
               </a>
               <button class="btn btn-outline-light" data-bs-toggle="collapse" data-bs-target="#horariosCarlos">

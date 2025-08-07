@@ -12,7 +12,7 @@
   <!-- Navbar -->
   <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
     <div class="container">
-      <a class="navbar-brand" href="../index.html">MEF</a>
+      <a class="navbar-brand" href="../index.php">MEF</a>
     </div>
   </nav>
 
@@ -45,7 +45,7 @@
         </div>
         
         <div class="text-center">
-          <a href="cadastro.html" class="btn btn-outline-light w-100">
+          <a href="cadastro.php" class="btn btn-outline-light w-100">
             <i class="bi bi-person-plus me-2"></i>Não tem conta? Cadastre-se
           </a>
         </div>

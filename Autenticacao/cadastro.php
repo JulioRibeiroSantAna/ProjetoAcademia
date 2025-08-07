@@ -12,7 +12,7 @@
   <!-- Navbar -->
   <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
     <div class="container">
-      <a class="navbar-brand" href="../index.html">MEF</a>
+      <a class="navbar-brand" href="../index.php">MEF</a>
     </div>
   </nav>
 
@@ -71,7 +71,7 @@
         </div>
         
         <div class="text-center">
-          <a href="login.html" class="btn btn-outline-light w-100">
+          <a href="login.php" class="btn btn-outline-light w-100">
             <i class="bi bi-box-arrow-in-right me-2"></i>Já tem conta? Faça login
           </a>
         </div>
