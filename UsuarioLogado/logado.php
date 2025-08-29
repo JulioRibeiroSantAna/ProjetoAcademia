@@ -15,16 +15,7 @@
 
   <main>
     <!-- Seção Hero -->
-    <section id="home" class="gradient-card d-flex align-items-center justify-content-center text-center text-white py-5" style="min-height: 100vh;">
-      <div class="container">
-        <h1 class="display-4 fw-bold mb-4">Bem-vindo(a) ao MEF</h1>
-        <h2 class="h3 mb-5">Área do Usuário</h2>
-        <div class="d-flex justify-content-center gap-3">
-          <a href="agendamento.php" class="btn btn-primary btn-lg">Agendar Consulta</a>
-          <a href="bate-papo.php" class="btn btn-outline-light btn-lg">Bate-Papo</a>
-        </div>
-      </div>
-    </section>
+    <?php include '../includes-Gerais/hero-section.php'; ?>
 
     <!-- Sobre -->
     <?php include_once '../includes-Gerais/sobre.php'; ?>

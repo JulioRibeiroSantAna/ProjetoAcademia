@@ -19,16 +19,7 @@
   <!-- Conteúdo Principal -->
   <main>
     <!-- Seção Hero -->
-    <section id="home" class="gradient-card d-flex align-items-center justify-content-center text-center text-white py-5" style="min-height: 100vh;">
-      <div class="container">
-        <h1 class="display-4 fw-bold mb-4">PREPARE-SE PARA MUDAR</h1>
-        <h2 class="h3 mb-5">PARA MELHOR.</h2>
-        <div class="d-flex justify-content-center gap-3">
-          <a href="Autenticacao/login.php" class="btn btn-primary btn-lg">Entrar na Plataforma</a>
-          <a href="#sobre" class="btn btn-outline-light btn-lg">Saiba Mais</a>
-        </div>
-      </div>
-    </section>
+    <?php include 'includes-Gerais/hero-section.php'; ?>
 
   <!-- Sobre -->
   <?php include 'includes-Gerais/sobre.php'; ?>
