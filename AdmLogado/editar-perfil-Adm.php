@@ -1,3 +1,15 @@
+<?php
+// Iniciar sessão se não estiver iniciada
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Verificar se o usuário é admin de verdade
+if (!isset($_SESSION['tipo_usuario']) || $_SESSION['tipo_usuario'] !== 'admin') {
+    header('Location: ../Autenticacao/login.php');
+    exit();
+}
+?>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -43,80 +55,12 @@
   <?php include '../includes-Gerais/navbar-dinamica.php'; ?>
 
   <main class="container mt-5 pt-5 editar-perfil-container">
-    <div class="gradient-card form-container">
-      <div class="text-center mb-4">
-        <label for="fotoPerfil" class="profile-photo d-inline-block"
-          style="background-image: url('https://cdn-icons-png.flaticon.com/512/3135/3135715.png'); width: 150px; height: 150px; cursor: pointer;"
-          aria-label="Foto do administrador"
-          role="img"
-        ></label>
-        <input type="file" id="fotoPerfil" accept="image/*" class="d-none">
-      </div>
-
-      <h2 class="text-center mb-4">Editar Perfil - Administrador</h2>
-
-      <form id="formEditarPerfil">
-        <div class="mb-3">
-          <label for="nome" class="form-label">Nome:</label>
-          <input type="text" class="form-control" id="nome" value="Administrador" required>
-        </div>
-
-        <div class="mb-3">
-          <label for="email" class="form-label">Email:</label>
-          <input type="email" class="form-control" id="email" value="admin@mef.com" required>
-        </div>
-
-        <div class="mb-3">
-          <label for="telefone" class="form-label">Telefone:</label>
-          <input type="tel" class="form-control" id="telefone" value="(51) 90000-0000">
-        </div>
-
-        <div class="mb-3">
-          <label for="senha" class="form-label">Nova Senha (opcional):</label>
-          <input type="password" class="form-control" id="senha" placeholder="Deixe em branco para não alterar">
-        </div>
-
-        <div class="mb-3">
-          <label for="confirmarSenha" class="form-label">Confirmar Nova Senha:</label>
-          <input type="password" class="form-control" id="confirmarSenha" placeholder="Repita a nova senha">
-        </div>
-
-        <button type="submit" class="btn btn-save w-100 mt-3 py-3">
-          <i class="bi bi-save me-2"></i>Salvar Alterações
-        </button>
-      </form>
-    </div>
+    <?php include '../includes-Gerais/editar-perfil-dinamico.php'; ?>
   </main>
 
   <?php include '../includes-Gerais/footer.php'; ?>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="../js/menu.js"></script>
-  <script>
-    document.getElementById('fotoPerfil').addEventListener('change', function(e) {
-      const file = e.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function(event) {
-          document.querySelector('.profile-photo').style.backgroundImage = `url('${event.target.result}')`;
-        };
-        reader.readAsDataURL(file);
-      }
-    });
-
-    document.getElementById('formEditarPerfil').addEventListener('submit', function(e) {
-      e.preventDefault();
-      
-      const senha = document.getElementById('senha').value;
-      const confirmarSenha = document.getElementById('confirmarSenha').value;
-      
-      if (senha && senha !== confirmarSenha) {
-        alert('As senhas não coincidem!');
-        return;
-      }
-      
-      alert('Perfil do administrador atualizado com sucesso!');
-    });
-  </script>
 </body>
 </html>

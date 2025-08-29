@@ -1,3 +1,15 @@
+<?php
+// Iniciar sessão se não estiver iniciada
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Verificar se o usuário está logado como usuário comum
+if (!isset($_SESSION['tipo_usuario']) || $_SESSION['tipo_usuario'] !== 'usuario') {
+    header('Location: ../Autenticacao/login.php');
+    exit();
+}
+?>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -42,34 +54,7 @@
   <?php include '../includes-Gerais/navbar-dinamica.php'; ?>
 
   <main class="container mt-5 pt-5 perfil-container">
-    <div class="gradient-card profile-container">
-      <div class="text-center mb-4">
-        <div class="profile-photo mx-auto"
-          style="background-image: url('https://cdn-icons-png.flaticon.com/512/3135/3135715.png'); width: 150px; height: 150px;"
-          aria-label="Foto do usuário Julio Ribeiro"
-          role="img"
-        ></div>
-      </div>
-
-      <h2 class="text-center mb-4">Perfil do Usuário</h2>
-
-      <div class="profile-info">
-        <div class="mb-3">
-          <label class="form-label fw-bold">Nome:</label>
-          <div class="form-control bg-dark text-white">Julio Ribeiro</div>
-        </div>
-        <div class="mb-3">
-          <label class="form-label fw-bold">Email:</label>
-          <div class="form-control bg-dark text-white">julioribeiro041@gmail.com</div>
-        </div>
-        <div class="mb-3">
-          <label class="form-label fw-bold">Telefone:</label>
-          <div class="form-control bg-dark text-white">(51) 99999-9999</div>
-        </div>
-      </div>
-
-      <a href="editar-perfil.php" class="btn btn-primary w-100 mt-3 py-3">Editar Perfil</a>
-    </div>
+    <?php include '../includes-Gerais/perfil-dinamico.php'; ?>
   </main>
 
   <?php include '../includes-Gerais/footer.php'; ?>

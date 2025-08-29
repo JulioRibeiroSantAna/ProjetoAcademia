@@ -1,5 +1,4 @@
 <?php
-
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -50,36 +49,69 @@ $menu_perfil = "";
 $menu_logout = "";
 $menu_dropdown = "";
 
+// URLs dinâmicas baseadas no tipo de usuário
+if (isset($_SESSION['tipo_usuario']) && $_SESSION['tipo_usuario'] !== '') {
+    if ($_SESSION['tipo_usuario'] === 'admin') {
+        $url_meus_agendamentos = $base_url . "/AdmLogado/meus-agendamentos-Adm.php";
+        $url_perfil = $base_url . "/AdmLogado/perfil-Adm.php";
+        $url_editar_perfil = $base_url . "/AdmLogado/editar-perfil-Adm.php";
+        $url_videos_apoio = $base_url . "/AdmLogado/videos-apoio-Adm.php";
+        $url_agendamento = $base_url . "/AdmLogado/agendamento-Adm.php";
+        $url_bate_papo = $base_url . "/AdmLogado/bate-papo-Adm.php";
+    } else if ($_SESSION['tipo_usuario'] === 'usuario') {
+        $url_meus_agendamentos = $base_url . "/UsuarioLogado/meus-agendamentos.php";
+        $url_perfil = $base_url . "/UsuarioLogado/perfil.php";
+        $url_editar_perfil = $base_url . "/UsuarioLogado/editar-perfil.php";
+        $url_videos_apoio = $base_url . "/UsuarioLogado/videos-apoio.php";
+        $url_agendamento = $base_url . "/UsuarioLogado/agendamento.php";
+        $url_bate_papo = $base_url . "/UsuarioLogado/bate-papo.php";
+    }
+}
+
 // Verifica se o usuário está logado para construir o menu dropdown
 if (isset($_SESSION['tipo_usuario']) && $_SESSION['tipo_usuario'] !== '') {
     // URLs para usuários logados
     if ($_SESSION['tipo_usuario'] === 'admin') {
         // Menu dropdown para admin
-        $menu_videos_apoio = '<li><a class="dropdown-item" href="' . $base_url . '/AdmLogado/videos-apoio-Adm.php">Vídeos de Apoio / Gerenciamento</a></li>';
+        $menu_videos_apoio = '<li><a class="dropdown-item" href="' . $url_videos_apoio . '">Vídeos de Apoio / Gerenciamento</a></li>';
         $menu_profissionais = '
         <li class="dropdown-submenu">
             <a class="dropdown-item dropdown-toggle" href="#">Profissionais</a>
             <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="' . $base_url . '/AdmLogado/agendamento-Adm.php">Agendar Consulta</a></li>
-                <li><a class="dropdown-item" href="' . $base_url . '/AdmLogado/bate-papo-Adm.php">Bate-Papo / Gerenciamento</a></li>
-                <li><a class="dropdown-item" href="' . $base_url . '/AdmLogado/meus-agendamentos-Adm.php">Meus Agendamentos</a></li>
+                <li><a class="dropdown-item" href="' . $url_agendamento . '">Agendar Consulta</a></li>
+                <li><a class="dropdown-item" href="' . $url_bate_papo . '">Bate-Papo / Gerenciamento</a></li>
+                <li><a class="dropdown-item" href="' . $url_meus_agendamentos . '">Meus Agendamentos</a></li>
             </ul>
         </li>';
-        $menu_perfil = '<li><a class="dropdown-item" href="' . $base_url . '/AdmLogado/perfil-Adm.php">Perfil de Usuário</a></li>';
+        $menu_perfil = '
+        <li class="dropdown-submenu">
+            <a class="dropdown-item dropdown-toggle" href="#">Perfil</a>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="' . $url_perfil . '">Ver Perfil</a></li>
+                <li><a class="dropdown-item" href="' . $url_editar_perfil . '">Editar Perfil</a></li>
+            </ul>
+        </li>';
         
     } else if ($_SESSION['tipo_usuario'] === 'usuario') {
         // Menu dropdown para usuário comum
-        $menu_videos_apoio = '<li><a class="dropdown-item" href="' . $base_url . '/UsuarioLogado/videos-apoio.php">Vídeos de Apoio</a></li>';
+        $menu_videos_apoio = '<li><a class="dropdown-item" href="' . $url_videos_apoio . '">Vídeos de Apoio</a></li>';
         $menu_profissionais = '
         <li class="dropdown-submenu">
             <a class="dropdown-item dropdown-toggle" href="#">Profissionais</a>
             <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="' . $base_url . '/UsuarioLogado/agendamento.php">Agendar Consulta</a></li>
-                <li><a class="dropdown-item" href="' . $base_url . '/UsuarioLogado/bate-papo.php">Bate-Papo</a></li>
-                <li><a class="dropdown-item" href="' . $base_url . '/UsuarioLogado/meus-agendamentos.php">Meus Agendamentos</a></li>
+                <li><a class="dropdown-item" href="' . $url_agendamento . '">Agendar Consulta</a></li>
+                <li><a class="dropdown-item" href="' . $url_bate_papo . '">Bate-Papo</a></li>
+                <li><a class="dropdown-item" href="' . $url_meus_agendamentos . '">Meus Agendamentos</a></li>
             </ul>
         </li>';
-        $menu_perfil = '<li><a class="dropdown-item" href="' . $base_url . '/UsuarioLogado/perfil.php">Perfil de Usuário</a></li>';
+        $menu_perfil = '
+        <li class="dropdown-submenu">
+            <a class="dropdown-item dropdown-toggle" href="#">Perfil</a>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="' . $url_perfil . '">Ver Perfil</a></li>
+                <li><a class="dropdown-item" href="' . $url_editar_perfil . '">Editar Perfil</a></li>
+            </ul>
+        </li>';
     }
     
     // Logout é comum para ambos os tipos de usuários logados
@@ -91,7 +123,7 @@ if (isset($_SESSION['tipo_usuario']) && $_SESSION['tipo_usuario'] !== '') {
     $menu_dropdown = '
     <div class="dropdown ms-3">
         <button class="btn btn-light dropdown-toggle" type="button" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false">
-            <i class="bi bi-person-circle me-1"></i> Menu
+            <i class="bi bi-person-circle me-1"></i> ' . htmlspecialchars($_SESSION['nome_usuario'] ?? 'Menu') . '
         </button>
         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
             ' . $menu_videos_apoio . '
@@ -149,6 +181,21 @@ if (isset($_SESSION['tipo_usuario']) && $_SESSION['tipo_usuario'] !== '') {
     margin-left: 1rem;
   }
 }
+.navbar {
+  background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+.navbar-brand {
+  font-weight: bold;
+  font-size: 1.5rem;
+}
+.nav-link {
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+.nav-link:hover {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
 </style>
 
 <script>
@@ -174,5 +221,18 @@ document.addEventListener('DOMContentLoaded', function () {
       menu.classList.remove('show');
     });
   });
+
+  // Fechar menu ao clicar em um item (para mobile)
+  document.querySelectorAll('.dropdown-menu .dropdown-item').forEach(function(item) {
+    item.addEventListener('click', function() {
+      var navbarCollapse = document.getElementById('navbarContent');
+      if (navbarCollapse.classList.contains('show')) {
+        var bsCollapse = new bootstrap.Collapse(navbarCollapse, {
+          toggle: false
+        });
+        bsCollapse.hide();
+      }
+    });
+  });
 });
-</script>
+</script>   
