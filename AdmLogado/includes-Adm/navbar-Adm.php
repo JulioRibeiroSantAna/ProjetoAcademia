@@ -7,6 +7,15 @@
     </button>
     <div class="collapse navbar-collapse" id="navbarContent">
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item">
+          <a class="nav-link" href="logado-Adm.php#sobre">Sobre</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="logado-Adm.php#profissionais">Profissionais</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#footer">Fale Conosco</a>
+        </li>
       </ul>
       <div class="dropdown ms-3">
         <button class="btn btn-light dropdown-toggle" type="button" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false">
@@ -24,7 +33,8 @@
           </li>
           <li><a class="dropdown-item" href="perfil-Adm.php">Perfil de Usuário</a></li>
           <li><hr class="dropdown-divider"></li>
-          <li><a class="dropdown-item text-danger" href="../index.php">Sair</a></li>
+          <!-- CORREÇÃO: Link para logout.php -->
+          <li><a class="dropdown-item text-danger" href="../Autenticacao/logout.php">Sair</a></li>
         </ul>
       </div>
     </div>

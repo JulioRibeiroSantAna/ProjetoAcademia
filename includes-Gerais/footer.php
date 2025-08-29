@@ -1,4 +1,4 @@
-<footer class="gradient-card text-white py-5">
+<footer id="footer" class="gradient-card text-white py-5">
   <div class="container">
     <div class="row text-center align-items-center justify-content-center">
       <!-- Coluna Fale Conosco -->

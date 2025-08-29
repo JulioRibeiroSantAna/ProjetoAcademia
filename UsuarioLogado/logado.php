@@ -1,3 +1,5 @@
+<?php require_once '../config.php'; ?>
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -25,82 +27,11 @@
     </section>
 
     <!-- Sobre -->
-    <section id="sobre" class="gradient-card py-5">
-      <div class="container">
-        <h2 class="text-center mb-5">SOBRE NOSSA PLATAFORMA</h2>
-        <div class="row justify-content-center">
-          <div class="col-lg-8">
-            <p class="lead text-center">Bem-vindo ao MEF - sua plataforma de saúde e bem-estar!</p>
-            <p>Aqui você encontra tudo o que precisa para melhorar sua saúde e qualidade de vida. Nosso sistema permite que você:</p>
-            <ul class="mb-4">
-              <li>Agende consultas com profissionais qualificados</li>
-              <li>Tire dúvidas sobre nutrição e saúde</li>
-              <li>Acesse conteúdos exclusivos sobre alimentação saudável</li>
-              <li>Receba orientações personalizadas</li>
-            </ul>
-            <p>Descubra recomendações de alimentos, receitas nutritivas e vídeos explicativos sobre exercícios físicos.</p>
-          </div>
-        </div>
-      </div>
-    </section>
+    <?php include_once '../includes-Gerais/sobre.php'; ?>
 
     <!-- Profissionais -->
-    <section id="profissionais" class="gradient-card py-5">
-      <div class="container">
-        <h2 class="text-center mb-5">NOSSOS PROFISSIONAIS</h2>
-        <p class="text-center lead mb-5">Conheça nossa equipe de especialistas</p>
+   <?php include '../includes-Gerais/profissionais-section.php';?>
 
-        <div class="row g-4">
-          <!-- Profissional 1 -->
-          <div class="col-md-6 col-lg-3">
-            <div class="card h-100 border-0 shadow-sm">
-              <img src="https://via.placeholder.com/300" class="card-img-top" alt="Gabriel da Vila">
-              <div class="card-body text-center">
-                <h5 class="card-title">Gabriel da Vila</h5>
-                <p class="card-text text-muted">Nutricionista Esportivo</p>
-                <a href="agendamento.php" class="btn btn-sm btn-primary">Agendar Consulta</a>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Profissional 2 -->
-          <div class="col-md-6 col-lg-3">
-            <div class="card h-100 border-0 shadow-sm">
-              <img src="https://via.placeholder.com/300" class="card-img-top" alt="Gustavo Silva">
-              <div class="card-body text-center">
-                <h5 class="card-title">Gustavo Silva</h5>
-                <p class="card-text text-muted">Personal Trainer</p>
-                <a href="agendamento.php" class="btn btn-sm btn-primary">Agendar Consulta</a>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Profissional 3 -->
-          <div class="col-md-6 col-lg-3">
-            <div class="card h-100 border-0 shadow-sm">
-              <img src="https://via.placeholder.com/300" class="card-img-top" alt="Julio Ribeiro">
-              <div class="card-body text-center">
-                <h5 class="card-title">Julio Ribeiro</h5>
-                <p class="card-text text-muted">Endocrinologista</p>
-                <a href="agendamento.php" class="btn btn-sm btn-primary">Agendar Consulta</a>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Profissional 4 -->
-          <div class="col-md-6 col-lg-3">
-            <div class="card h-100 border-0 shadow-sm">
-              <img src="https://via.placeholder.com/300" class="card-img-top" alt="Miqueias">
-              <div class="card-body text-center">
-                <h5 class="card-title">Miqueias</h5>
-                <p class="card-text text-muted">Psicólogo</p>
-                <a href="agendamento.php" class="btn btn-sm btn-primary">Agendar Consulta</a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
   </main>
 
   <?php include '../includes-Gerais/footer.php'; ?>

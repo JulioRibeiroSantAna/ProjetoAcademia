@@ -1,3 +1,5 @@
+<?php require_once 'config.php';?>
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -29,7 +31,7 @@
             <a class="nav-link" href="#profissionais">Profissionais</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#fale-conosco">Fale Conosco</a>
+            <a class="nav-link" href="#footer">Fale Conosco</a>
           </li>
         </ul>
 
@@ -54,81 +56,15 @@
       </div>
     </section>
 
-    <!-- Sobre -->
-    <section id="sobre" class="gradient-card py-5">
-      <div class="container">
-        <h2 class="text-center mb-5">SOBRE NOSSA PLATAFORMA</h2>
-        <div class="row justify-content-center">
-          <div class="col-lg-8">
-            <p class="lead text-center">Bem-vindo ao MEF - sua plataforma de saúde e bem-estar!</p>
-            <p>Aqui, você encontra tudo o que precisa para melhorar sua saúde e bem-estar! Nosso sistema permite que você agende consultas com profissionais da área, tire dúvidas sobre nutrição e tenha acesso a conteúdos exclusivos sobre alimentação saudável e atividades físicas.</p>
-            <p>Descubra recomendações de alimentos, receitas nutritivas e vídeos explicativos sobre exercícios físicos. Se ainda não tem cadastro, você pode explorar algumas dicas e vídeos, mas para aproveitar todos os benefícios e interagir com nossos especialistas, basta se cadastrar!</p>
-            <p class="text-center mt-4"><strong>Cuide da sua saúde de forma prática e acessível com o MEF!</strong></p>
-          </div>
-        </div>
-      </div>
-    </section>
+  <!-- Sobre -->
+  <?php include 'includes-Gerais/sobre.php'; ?>
 
     <!-- Profissionais -->
-    <section id="profissionais" class="gradient-card py-5">
-      <div class="container">
-        <h2 class="text-center mb-5">NOSSOS PROFISSIONAIS</h2>
-        <p class="text-center lead mb-5">Cada corpo é diferente, por isso nos certificamos de que você possa escolher um plano que funcione melhor para você.</p>
+    <?php include 'includes-Gerais/profissionais-section.php'; ?>
 
-        <div class="row g-4">
-          <!-- Profissional 1 -->
-          <div class="col-md-6 col-lg-3">
-            <div class="card h-100 border-0 shadow-sm">
-              <img src="https://via.placeholder.com/300" class="card-img-top" alt="Gabriel da Vila">
-              <div class="card-body text-center">
-                <h5 class="card-title">Gabriel da Vila</h5>
-                <p class="card-text text-muted">Nutricionista Esportivo</p>
-                <a href="Autenticacao/login.php" class="btn btn-sm btn-primary">Conhecer</a>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Profissional 2 -->
-          <div class="col-md-6 col-lg-3">
-            <div class="card h-100 border-0 shadow-sm">
-              <img src="https://via.placeholder.com/300" class="card-img-top" alt="Gustavo Silva">
-              <div class="card-body text-center">
-                <h5 class="card-title">Gustavo Silva</h5>
-                <p class="card-text text-muted">Personal Trainer</p>
-                <a href="Autenticacao/login.php" class="btn btn-sm btn-primary">Conhecer</a>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Profissional 3 -->
-          <div class="col-md-6 col-lg-3">
-            <div class="card h-100 border-0 shadow-sm">
-              <img src="https://via.placeholder.com/300" class="card-img-top" alt="Julio Ribeiro">
-              <div class="card-body text-center">
-                <h5 class="card-title">Julio Ribeiro</h5>
-                <p class="card-text text-muted">Endocrinologista</p>
-                <a href="Autenticacao/login.php" class="btn btn-sm btn-primary">Conhecer</a>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Profissional 4 -->
-          <div class="col-md-6 col-lg-3">
-            <div class="card h-100 border-0 shadow-sm">
-              <img src="https://via.placeholder.com/300" class="card-img-top" alt="Miqueias">
-              <div class="card-body text-center">
-                <h5 class="card-title">Miqueias</h5>
-                <p class="card-text text-muted">Psicólogo</p>
-                <a href="Autenticacao/login.php" class="btn btn-sm btn-primary">Conhecer</a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
   </main>
 
-  <?php include 'includes-Gerais/footer.php'; ?>
+  <?php include 'includes-Gerais/footer.php'; ?>  
 
   <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
