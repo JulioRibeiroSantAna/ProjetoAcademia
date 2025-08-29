@@ -23,11 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body>
   <!-- Navbar -->
-  <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
-    <div class="container">
-      <a class="navbar-brand" href="../index.php">MEF</a>
-    </div>
-  </nav>
+  <?php include '../includes-Gerais/navbar-dinamica.php'; ?>
 
   <!-- Conteúdo Principal -->
   <main class="container mt-5 pt-5">

@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="../styles.css">
 </head>
 <body>
-  <?php include 'includes-Adm/navbar-Adm.php'; ?>
+  <?php include '../includes-Gerais/navbar-dinamica.php'; ?>
 
   <main class="container">
     <div class="gradient-card" style="max-width: 600px; margin: 80px auto; padding: 30px;">
@@ -66,7 +66,7 @@
       </form>
     </div>  
   </main>
-  
+
   <?php include '../includes-Gerais/footer.php'; ?>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

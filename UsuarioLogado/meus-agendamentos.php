@@ -27,7 +27,7 @@
   </style>
 </head>
 <body>
-  <?php include 'includes-UsuarioLogado/navbar-UsuarioLogado.php'; ?>
+  <?php include '../includes-Gerais/navbar-dinamica.php'; ?>
 
   <main class="container mt-5 pt-4 agendamentos-container">
     <div class="gradient-card p-4 table-container">

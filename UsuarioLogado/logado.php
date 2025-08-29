@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="../styles.css">
 </head>
 <body>
-  <?php include 'includes-UsuarioLogado/navbar-UsuarioLogado.php'; ?>
+  <?php include '../includes-Gerais/navbar-dinamica.php'; ?>
 
   <main>
     <!-- Seção Hero -->

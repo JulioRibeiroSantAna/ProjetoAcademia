@@ -40,7 +40,7 @@
   </style>
 </head>
 <body>
-  <?php include 'includes-UsuarioLogado/navbar-UsuarioLogado.php'; ?>
+  <?php include '../includes-Gerais/navbar-dinamica.php'; ?>
 
   <main class="container mt-5 pt-5 editar-perfil-container">
     <div class="gradient-card form-container">

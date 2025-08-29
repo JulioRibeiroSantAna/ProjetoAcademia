@@ -45,7 +45,7 @@
   </style>
 </head>
 <body>
-  <?php include 'includes-UsuarioLogado/navbar-UsuarioLogado.php'; ?>
+  <?php include '../includes-Gerais/navbar-dinamica.php'; ?>
 
   <main class="container agendamento-container">
     <div class="gradient-card agendamento-form">

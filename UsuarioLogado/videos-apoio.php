@@ -34,7 +34,7 @@
   </style>
 </head>
 <body>
-  <?php include 'includes-UsuarioLogado/navbar-UsuarioLogado.php'; ?>
+  <?php include '../includes-Gerais/navbar-dinamica.php'; ?>
 
   <!-- Conteúdo principal com container flexível -->
   <main class="container mt-5 pt-4 videos-container">

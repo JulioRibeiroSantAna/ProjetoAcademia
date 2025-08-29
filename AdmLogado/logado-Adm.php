@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="../styles.css">
 </head>
 <body>
-  <?php include 'includes-Adm/navbar-Adm.php'; ?>
+  <?php include '../includes-Gerais/navbar-dinamica.php'; ?>
   <!-- Conteúdo Principal -->
   <main>
     <!-- Seção Hero -->

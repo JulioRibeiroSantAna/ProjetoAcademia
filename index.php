@@ -14,33 +14,7 @@
 </head>
 <body>
   <!-- Navbar -->
-  <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
-    <div class="container">
-      <a class="navbar-brand" href="#home">MEF</a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent"
-        aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-
-      <div class="collapse navbar-collapse" id="navbarContent">
-        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-          <li class="nav-item">
-            <a class="nav-link" href="#sobre">Sobre</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#profissionais">Profissionais</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#footer">Fale Conosco</a>
-          </li>
-        </ul>
-
-        <a href="Autenticacao/login.php" class="btn btn-light">
-          <i class="bi bi-person-circle me-1"></i> Entrar
-        </a>
-      </div>
-    </div>
-  </nav>
+  <?php include 'includes-Gerais/navbar-dinamica.php'; ?>
 
   <!-- Conteúdo Principal -->
   <main>

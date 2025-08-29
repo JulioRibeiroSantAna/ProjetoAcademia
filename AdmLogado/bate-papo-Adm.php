@@ -98,7 +98,7 @@
   </style>
 </head>
 <body>
-  <?php include 'includes-Adm/navbar-Adm.php'; ?>
+  <?php include '../includes-Gerais/navbar-dinamica.php'; ?>
 
   <!-- Conteúdo principal -->
   <main class="container mt-5 pt-4 bate-papo-container">

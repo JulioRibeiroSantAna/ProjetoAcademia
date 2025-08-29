@@ -1,23 +1,21 @@
 <?php
-// includes-Gerais/profissionais-section.php
 
-// Verificar se config.php já foi incluído
 if (!isset($base_url)) {
     require_once __DIR__ . '/../config.php';
 }
 
-// Definir URLs e textos padrão para usuários NÃO logados
+// Define URLs e textos padrão para usuários NÃO logados
 $url_agendamento = $base_url . "/Autenticacao/login.php";
 $texto_botao = "Conhecer";
 $texto_descricao = "Cada corpo é diferente, por isso nos certificamos de que você possa escolher um plano que funcione melhor para você.";
 
-// Verificar tipo de usuário - APENAS se estiver logado
+// Verifica tipo de usuário se "logado"
 if (isset($_SESSION['tipo_usuario']) && $_SESSION['tipo_usuario'] !== '') {
     // Mudar para "Agendar Consulta" independente de ser user ou admin
     $texto_botao = "Agendar Consulta";
     $texto_descricao = "Conheça nossa equipe de especialistas";
     
-    // Definir URL correta baseada no tipo de usuário
+    // Define URL correta baseada no tipo de usuário
     if ($_SESSION['tipo_usuario'] === 'admin') {
         $url_agendamento = $base_url . "/AdmLogado/agendamento-Adm.php";
     } else if ($_SESSION['tipo_usuario'] === 'usuario') {
@@ -25,7 +23,7 @@ if (isset($_SESSION['tipo_usuario']) && $_SESSION['tipo_usuario'] !== '') {
     }
 }
 
-// Preparar URL com parâmetro se não estiver logado
+// Prepara URL com parâmetro se não estiver logado
 $url_com_parametro = $url_agendamento;
 if (!isset($_SESSION['tipo_usuario']) || $_SESSION['tipo_usuario'] === '') {
     $url_com_parametro .= '?from=profissionais';
