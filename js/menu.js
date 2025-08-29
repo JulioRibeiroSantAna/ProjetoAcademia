@@ -48,4 +48,26 @@ export function configurarMenu() {
       menu.style.display = 'none';
     });
   }
+  
+  document.addEventListener('DOMContentLoaded', function () {
+    var dropdownSubmenus = document.querySelectorAll('.dropdown-submenu .dropdown-toggle');
+    dropdownSubmenus.forEach(function (dropdownToggle) {
+      dropdownToggle.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var submenu = this.nextElementSibling;
+        if (submenu) {
+          submenu.classList.toggle('show');
+        }
+        document.querySelectorAll('.dropdown-submenu .dropdown-menu').forEach(function (menu) {
+          if (menu !== submenu) menu.classList.remove('show');
+        });
+      });
+    });
+    document.addEventListener('click', function () {
+      document.querySelectorAll('.dropdown-submenu .dropdown-menu').forEach(function (menu) {
+        menu.classList.remove('show');
+      });
+    });
+  });
 }

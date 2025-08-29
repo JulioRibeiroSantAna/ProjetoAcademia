@@ -4,65 +4,33 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Vídeos de Apoio - Admin - MEF</title>
-  <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <!-- Bootstrap Icons -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
   <link rel="stylesheet" href="../styles.css">
+  <style>
+    .videos-container {
+      min-height: calc(100vh - 200px);
+      display: flex;
+      flex-direction: column;
+    }
+    .content-wrapper {
+      flex: 1;
+      margin-bottom: 2rem;
+    }
+    .video-card {
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .video-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    }
+  </style>
 </head>
 <body>
-  <!-- Navbar -->
-  <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
-    <div class="container">
-      <a class="navbar-brand" href="logado-Adm.php">MEF</a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent"
-        aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
+  <?php include 'includes-Adm/navbar-Adm.php'; ?>
 
-      <div class="collapse navbar-collapse" id="navbarContent">
-        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-          <li class="nav-item">
-            <a class="nav-link" href="logado-Adm.php#sobre">Sobre</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="logado-Adm.php#profissionais">Profissionais</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="logado-Adm.php#fale-conosco">Fale Conosco</a>
-          </li>
-        </ul>
-
-        <div class="dropdown ms-3">
-          <button class="btn btn-light dropdown-toggle" type="button" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false">
-            <i class="bi bi-person-circle me-1"></i> Menu
-          </button>
-          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
-            <li><a class="dropdown-item" href="videos-apoio-Adm.php">Vídeos de Apoio</a></li>
-            <li class="dropdown-submenu">
-              <a class="dropdown-item d-flex justify-content-between align-items-center submenu-toggle" 
-                 href="#" 
-                 role="button">
-                Profissionais <i class="bi bi-chevron-down small"></i>
-              </a>
-              <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="agendamento-Adm.php">Agendar Consulta</a></li>
-                <li><a class="dropdown-item" href="bate-papo-Adm.php">Bate-Papo</a></li>
-                <li><a class="dropdown-item" href="meus-agendamentos-Adm.php">Meus Agendamentos</a></li>
-              </ul>
-            </li>
-            <li><a class="dropdown-item" href="perfil-Adm.php">Perfil de Usuário</a></li>
-            <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item text-danger" href="../index.php">Sair</a></li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  </nav>
-
-  <!-- Conteúdo principal -->
-  <main class="container mt-5 pt-5">
-    <div class="gradient-card p-4">
+  <main class="container mt-5 pt-4 videos-container">
+    <div class="gradient-card p-4 content-wrapper">
       <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
           <h1 class="mb-0">Vídeos de Apoio</h1>
@@ -94,7 +62,7 @@
       <div class="row g-4">
         <!-- Vídeo 1 -->
         <div class="col-md-6 col-lg-4">
-          <div class="gradient-card h-100 p-3">
+          <div class="gradient-card h-100 p-3 video-card">
             <div class="ratio ratio-16x9 mb-3">
               <iframe src="https://www.youtube.com/embed/t6pK2j9-WI8" title="Receita saudável" allowfullscreen></iframe>
             </div>
@@ -116,7 +84,7 @@
         
         <!-- Vídeo 2 -->
         <div class="col-md-6 col-lg-4">
-          <div class="gradient-card h-100 p-3">
+          <div class="gradient-card h-100 p-3 video-card">
             <div class="ratio ratio-16x9 mb-3">
               <iframe src="https://www.youtube.com/embed/ZF0MTDr0WQg" title="Dicas de nutrição" allowfullscreen></iframe>
             </div>
@@ -138,7 +106,7 @@
         
         <!-- Vídeo 3 -->
         <div class="col-md-6 col-lg-4">
-          <div class="gradient-card h-100 p-3">
+          <div class="gradient-card h-100 p-3 video-card">
             <div class="ratio ratio-16x9 mb-3">
               <iframe src="https://www.youtube.com/embed/9k_BjL6L1Qg" title="Orientações para dieta" allowfullscreen></iframe>
             </div>
@@ -222,14 +190,15 @@
     </div>
   </div>
 
+  <?php include '../includes-Gerais/footer.php'; ?>
+
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../js/menu.js"></script>
   <script>
-    // Variáveis globais
     let currentVideoId = null;
     const videoModal = new bootstrap.Modal(document.getElementById('videoModal'));
     const deleteModal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
     
-    // Botão para adicionar novo vídeo
     document.getElementById('btnAddVideo').addEventListener('click', function() {
       document.getElementById('modalTitle').textContent = 'Adicionar Novo Vídeo';
       document.getElementById('videoForm').reset();
@@ -237,23 +206,19 @@
       videoModal.show();
     });
     
-    // Botões para editar vídeo
     document.querySelectorAll('.btn-edit-video').forEach(btn => {
       btn.addEventListener('click', function() {
         const videoCard = this.closest('.gradient-card');
         currentVideoId = this.getAttribute('data-video-id');
         
-        // Preencher o formulário com os dados atuais (simulação)
         document.getElementById('modalTitle').textContent = 'Editar Vídeo';
         document.getElementById('videoId').value = currentVideoId;
         document.getElementById('videoTitle').value = videoCard.querySelector('h4').textContent;
         document.getElementById('videoDescription').value = videoCard.querySelector('p').textContent;
         
-        // Extrair a categoria do badge
         const category = videoCard.querySelector('.badge').textContent;
         document.getElementById('videoCategory').value = category;
         
-        // Extrair URL do iframe (simplificado)
         const iframeSrc = videoCard.querySelector('iframe').src;
         document.getElementById('videoUrl').value = iframeSrc;
         
@@ -261,14 +226,11 @@
       });
     });
     
-    // Botão para salvar vídeo (adicionar/editar)
     document.getElementById('btnSaveVideo').addEventListener('click', function() {
-      // Aqui você implementaria a lógica para salvar no banco de dados
       alert('Vídeo salvo com sucesso!');
       videoModal.hide();
     });
     
-    // Botões para excluir vídeo
     document.querySelectorAll('.btn-delete-video').forEach(btn => {
       btn.addEventListener('click', function() {
         currentVideoId = this.closest('.gradient-card').querySelector('.btn-edit-video').getAttribute('data-video-id');
@@ -276,14 +238,11 @@
       });
     });
     
-    // Confirmação de exclusão
     document.getElementById('btnConfirmDelete').addEventListener('click', function() {
-      // Aqui você implementaria a lógica para excluir do banco de dados
       alert(`Vídeo ${currentVideoId} excluído com sucesso!`);
       deleteModal.hide();
     });
     
-    // Filtro de pesquisa
     document.querySelector('input[type="search"]').addEventListener('input', function() {
       const searchTerm = this.value.toLowerCase();
       document.querySelectorAll('.gradient-card').forEach(card => {

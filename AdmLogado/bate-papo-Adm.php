@@ -11,6 +11,15 @@
   <link rel="stylesheet" href="../styles.css">
   <style>
     /* Estilos específicos para esta página */
+    .bate-papo-container {
+      min-height: calc(100vh - 200px);
+      display: flex;
+      flex-direction: column;
+    }
+    .content-wrapper {
+      flex: 1;
+      margin-bottom: 2rem;
+    }
     .gradient-card {
       background: linear-gradient(135deg, rgba(26, 26, 46, 0.8), rgba(26, 26, 46, 0.6));
       backdrop-filter: blur(10px);
@@ -89,58 +98,11 @@
   </style>
 </head>
 <body>
-  <!-- Navbar -->
-  <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
-    <div class="container">
-      <a class="navbar-brand" href="logado-Adm.php">MEF</a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent"
-        aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-
-      <div class="collapse navbar-collapse" id="navbarContent">
-        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-          <li class="nav-item">
-            <a class="nav-link" href="logado-Adm.php#sobre">Sobre</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="logado-Adm.php#profissionais">Profissionais</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="logado-Adm.php#fale-conosco">Fale Conosco</a>
-          </li>
-        </ul>
-
-        <div class="dropdown ms-3">
-          <button class="btn btn-light dropdown-toggle" type="button" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false">
-            <i class="bi bi-person-circle me-1"></i> Menu
-          </button>
-          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
-            <li><a class="dropdown-item" href="videos-apoio-Adm.php">Vídeos de Apoio</a></li>
-            <li class="dropdown-submenu">
-              <a class="dropdown-item d-flex justify-content-between align-items-center submenu-toggle" 
-                 href="#" 
-                 role="button">
-                Profissionais <i class="bi bi-chevron-down small"></i>
-              </a>
-              <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="agendamento-Adm.php">Agendar Consulta</a></li>
-                <li><a class="dropdown-item" href="bate-papo-Adm.php">Bate-Papo</a></li>
-                <li><a class="dropdown-item" href="meus-agendamentos-Adm.php">Meus Agendamentos</a></li>
-              </ul>
-            </li>
-            <li><a class="dropdown-item" href="perfil-Adm.php">Perfil de Usuário</a></li>
-            <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item text-danger" href="../index.php">Sair</a></li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  </nav>
+  <?php include 'includes-Adm/navbar-Adm.php'; ?>
 
   <!-- Conteúdo principal -->
-  <main class="container mt-5 pt-4">
-    <div class="gradient-card p-4">
+  <main class="container mt-5 pt-4 bate-papo-container">
+    <div class="gradient-card p-4 content-wrapper">
       <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
           <h1 class="mb-0">BATE-PAPO</h1>
@@ -529,9 +491,11 @@
     </div>
   </div>
 
+  <?php include '../includes-Gerais/footer.php'; ?>
+
   <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  
+  <script src="../js/menu.js"></script>
   <script>
     // Função para confirmar exclusão
     function confirmDelete(professionalId) {

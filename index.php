@@ -126,43 +126,9 @@
         </div>
       </div>
     </section>
-
-    <!-- Fale Conosco -->
-    <section id="fale-conosco" class="gradient-card py-5">
-      <div class="container text-center">
-        <h2 class="mb-4">FALE CONOSCO</h2>
-        <p class="lead mb-4">Siga a MEF nas redes sociais ou entre em contato</p>
-        
-        <div class="d-flex justify-content-center gap-3 mb-4">
-          <a href="#" class="btn btn-dark rounded-circle p-3">
-            <i class="bi bi-instagram fs-4"></i>
-          </a>
-          <a href="#" class="btn btn-dark rounded-circle p-3">
-            <i class="bi bi-facebook fs-4"></i>
-          </a>
-          <a href="#" class="btn btn-dark rounded-circle p-3">
-            <i class="bi bi-whatsapp fs-4"></i>
-          </a>
-        </div>
-        
-        <p class="mb-4">
-          <i class="bi bi-envelope me-2"></i>
-          <a href="mailto:julioribeiro041@gmail.com" class="text-white">julioribeiro041@gmail.com</a>
-        </p>
-        
-        <a href="#" class="btn btn-primary px-4 py-2">
-          <i class="bi bi-headset me-2"></i> Contato Rápido
-        </a>
-      </div>
-    </section>
   </main>
 
-  <!-- Rodapé -->
-  <footer class="gradient-card text-white py-4">
-    <div class="container text-center">
-      <p class="mb-0">© 2023 MEF - Todos os direitos de Juliusss</p>
-    </div>
-  </footer>
+  <?php include 'includes-Gerais/footer.php'; ?>
 
   <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

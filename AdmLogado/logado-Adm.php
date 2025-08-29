@@ -4,66 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>MEF - Área Logada Adm</title>
-  
-  <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
-  
-  <!-- Bootstrap Icons -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
-  
   <link rel="stylesheet" href="../styles.css">
 </head>
 <body>
-  <!-- Navbar -->
-  <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
-    <div class="container">
-      <a class="navbar-brand" href="logado-Adm.php">MEF</a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent"
-        aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-
-      <div class="collapse navbar-collapse" id="navbarContent">
-        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-          <li class="nav-item">
-            <a class="nav-link" href="#sobre">Sobre</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#profissionais">Profissionais</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#fale-conosco">Fale Conosco</a>
-          </li>
-        </ul>
-
-        <!-- Menu do usuário -->
-        <div class="dropdown ms-3">
-          <button class="btn btn-light dropdown-toggle" type="button" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false">
-            <i class="bi bi-person-circle me-1"></i> Menu
-          </button>
-          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
-            <li><a class="dropdown-item" href="videos-apoio-Adm.php">Vídeos de Apoio</a></li>
-            <li class="dropdown-submenu">
-              <a class="dropdown-item d-flex justify-content-between align-items-center submenu-toggle" 
-                 href="#" 
-                 role="button">
-                Profissionais <i class="bi bi-chevron-down small"></i>
-              </a>
-              <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="agendamento-Adm.php">Agendar Consulta</a></li>
-                <li><a class="dropdown-item" href="bate-papo-Adm.php">Bate-Papo</a></li>
-                <li><a class="dropdown-item" href="meus-agendamentos-Adm.php">Meus Agendamentos</a></li>
-              </ul>
-            </li>
-            <li><a class="dropdown-item" href="perfil-Adm.php">Perfil de Usuário</a></li>
-            <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item text-danger" href="../index.php">Sair</a></li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  </nav>
-
+  <?php include 'includes-Adm/navbar-Adm.php'; ?>
   <!-- Conteúdo Principal -->
   <main>
     <!-- Seção Hero -->
@@ -155,45 +101,12 @@
         </div>
       </div>
     </section>
-
-    <!-- Fale Conosco -->
-    <section id="fale-conosco" class="gradient-card py-5">
-      <div class="container text-center">
-        <h2 class="mb-4">FALE CONOSCO</h2>
-        <p class="lead mb-4">Tem dúvidas ou sugestões? Entre em contato conosco!</p>
-        
-        <div class="d-flex justify-content-center gap-3 mb-4">
-          <a href="#" class="btn btn-dark rounded-circle p-3">
-            <i class="bi bi-instagram fs-4"></i>
-          </a>
-          <a href="#" class="btn btn-dark rounded-circle p-3">
-            <i class="bi bi-facebook fs-4"></i>
-          </a>
-          <a href="#" class="btn btn-dark rounded-circle p-3">
-            <i class="bi bi-whatsapp fs-4"></i>
-          </a>
-        </div>
-        
-        <p class="mb-4">
-          <i class="bi bi-envelope me-2"></i>
-          <a href="mailto:contato@mef.com.br" class="text-white">contato@mef.com.br</a>
-        </p>
-        
-        <a href="#" class="btn btn-primary px-4 py-2">
-          <i class="bi bi-headset me-2"></i> Chat Online
-        </a>
-      </div>
-    </section>
   </main>
 
-  <!-- Rodapé -->
-  <footer class="gradient-card text-white py-4">
-    <div class="container text-center">
-      <p class="mb-0">© 2023 MEF - Todos os direitos de Juliusss</p>
-    </div>
-  </footer>
+  <?php include '../includes-Gerais/footer.php'; ?>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script type="module" src="../js/main.js"></script>
+  <script src="../js/menu.js"></script>
 </body>
 </html>
