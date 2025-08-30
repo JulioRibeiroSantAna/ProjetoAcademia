@@ -40,14 +40,14 @@ $badge_classes = [
 ];
 ?>
 
-<div class="gradient-card p-4 content-wrapper">
+<div class="mef-card p-4">
     <?php if ($is_admin): ?>
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h1 class="mb-0">Vídeos de Apoio</h1>
-            <p class="lead mb-0">Administração de conteúdo</p>
+            <p class="lead mb-0 text-muted">Administração de conteúdo</p>
         </div>
-        <button class="btn btn-primary" id="btnAddVideo">
+        <button class="mef-btn-primary" id="btnAddVideo">
             <i class="bi bi-plus-circle me-2"></i>Adicionar Vídeo
         </button>
     </div>
@@ -55,17 +55,17 @@ $badge_classes = [
     <h1 class="mb-4">Vídeos de Apoio</h1>
     <?php endif; ?>
     
-    <p class="lead mb-4">
+    <p class="lead mb-4 text-muted">
         <?php echo $is_admin ? 'Gerencie os vídeos educativos disponíveis para os usuários.' : 'Aprenda mais sobre alimentação saudável com nossos vídeos educativos.'; ?>
         Dicas, receitas e orientações para uma nutrição equilibrada!
     </p>
 
     <div class="row mb-4">
         <div class="col-md-8">
-            <input type="search" class="form-control" placeholder="Pesquisar vídeos...">
+            <input type="search" class="mef-form-control" placeholder="Pesquisar vídeos...">
         </div>
         <div class="col-md-4">
-            <select class="form-select">
+            <select class="mef-form-control">
                 <option selected>Todas as categorias</option>
                 <option>Receitas</option>
                 <option>Dicas</option>
@@ -77,7 +77,7 @@ $badge_classes = [
     <div class="row g-4">
         <?php foreach ($videos as $video): ?>
         <div class="col-md-6 col-lg-4">
-            <div class="gradient-card h-100 p-3 video-card">
+            <div class="content-card h-100 p-3">
                 <div class="ratio ratio-16x9 mb-3">
                     <iframe src="<?php echo $video['url']; ?>" title="<?php echo $video['titulo']; ?>" allowfullscreen></iframe>
                 </div>
@@ -98,7 +98,7 @@ $badge_classes = [
                 <h4 class="mb-2"><?php echo $video['titulo']; ?></h4>
                 <?php endif; ?>
                 
-                <p><?php echo $video['descricao']; ?></p>
+                <p class="text-muted"><?php echo $video['descricao']; ?></p>
                 <span class="badge <?php echo $badge_classes[$video['categoria']]; ?>"><?php echo $video['categoria']; ?></span>
             </div>
         </div>
@@ -108,7 +108,7 @@ $badge_classes = [
 
 <?php if ($is_admin): ?>
 <!-- Modal para adicionar/editar vídeo -->
-<div class="modal fade" id="videoModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade mef-modal" id="videoModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header bg-primary text-white">
@@ -119,20 +119,20 @@ $badge_classes = [
                 <form id="videoForm">
                     <input type="hidden" id="videoId">
                     <div class="mb-3">
-                        <label for="videoTitle" class="form-label">Título do Vídeo</label>
-                        <input type="text" class="form-control" id="videoTitle" required>
+                        <label for="videoTitle" class="mef-form-label">Título do Vídeo</label>
+                        <input type="text" class="mef-form-control" id="videoTitle" required>
                     </div>
                     <div class="mb-3">
-                        <label for="videoUrl" class="form-label">URL do Vídeo (YouTube)</label>
-                        <input type="url" class="form-control" id="videoUrl" required>
+                        <label for="videoUrl" class="mef-form-label">URL do Vídeo (YouTube)</label>
+                        <input type="url" class="mef-form-control" id="videoUrl" required>
                     </div>
                     <div class="mb-3">
-                        <label for="videoDescription" class="form-label">Descrição</label>
-                        <textarea class="form-control" id="videoDescription" rows="3" required></textarea>
+                        <label for="videoDescription" class="mef-form-label">Descrição</label>
+                        <textarea class="mef-form-control" id="videoDescription" rows="3" required></textarea>
                     </div>
                     <div class="mb-3">
-                        <label for="videoCategory" class="form-label">Categoria</label>
-                        <select class="form-select" id="videoCategory" required>
+                        <label for="videoCategory" class="mef-form-label">Categoria</label>
+                        <select class="mef-form-control" id="videoCategory" required>
                             <option value="">Selecione uma categoria</option>
                             <option value="Receitas">Receitas</option>
                             <option value="Dicas">Dicas</option>
@@ -143,14 +143,14 @@ $badge_classes = [
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary" id="btnSaveVideo">Salvar</button>
+                <button type="button" class="mef-btn-primary" id="btnSaveVideo">Salvar</button>
             </div>
         </div>
     </div>
 </div>
 
 <!-- Modal de confirmação para excluir -->
-<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade mef-modal" id="confirmDeleteModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header bg-danger text-white">
@@ -223,7 +223,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Editar vídeo
     document.querySelectorAll('.btn-edit-video').forEach(btn => {
         btn.addEventListener('click', function() {
-            const videoCard = this.closest('.gradient-card');
+            const videoCard = this.closest('.content-card');
             currentVideoId = this.getAttribute('data-video-id');
             
             document.getElementById('modalTitle').textContent = 'Editar Vídeo';

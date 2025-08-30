@@ -2,22 +2,10 @@
 // Autenticacao/logout.php
 require_once '../config.php';
 
-// Destruir todas as variáveis de sessão
-$_SESSION = array();
-
-// Se deseja destruir a sessão completamente, delete também o cookie de sessão
-if (ini_get("session.use_cookies")) {
-    $params = session_get_cookie_params();
-    setcookie(session_name(), '', time() - 42000,
-        $params["path"], $params["domain"],
-        $params["secure"], $params["httponly"]
-    );
-}
-
-// Finalmente, destruir a sessão
+// Destruir a sessão
+session_unset();
 session_destroy();
 
 // Redirecionar para a página inicial
-header('Location: ' . $base_url . '/index.php');
+header('Location: ../index.php');
 exit;
-?>

@@ -17,82 +17,84 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Cadastro - MEF</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="../bootstrap-5.0.2-dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../styles.css">
 </head>
 <body>
-  <!-- Navbar -->
   <?php include '../includes-Gerais/navbar-dinamica.php'; ?>
 
   <!-- Conteúdo Principal -->
-  <main class="container mt-5 pt-5">
-    <div class="gradient-card p-4" style="max-width: 600px; margin: 0 auto;">
-      <h1 class="mb-4 text-center">Cadastro</h1>
-      
-      <?php if (isset($_SESSION['mensagem'])): ?>
-        <div class="alert alert-success"><?php echo $_SESSION['mensagem']; unset($_SESSION['mensagem']); ?></div>
-      <?php endif; ?>
-      
-      <form method="POST" action="">
-        <div class="row mb-3">
-          <div class="col-md-6 mb-3 mb-md-0">
-            <label for="name" class="form-label">Nome Completo</label>
-            <div class="input-group">
-              <span class="input-group-text"><i class="bi bi-person"></i></span>
-              <input type="text" class="form-control" id="name" name="name" placeholder="Digite seu nome" required>
+  <main class="auth-container">
+    <div class="container-symmetric">
+      <div class="mef-card auth-card">
+        <h1 class="text-center mb-4 fade-in-up">Cadastro</h1>
+        
+        <?php if (isset($_SESSION['mensagem'])): ?>
+          <div class="alert alert-success fade-in-up"><?php echo $_SESSION['mensagem']; unset($_SESSION['mensagem']); ?></div>
+        <?php endif; ?>
+        
+        <form method="POST" action="" class="fade-in-up">
+          <div class="row mb-3">
+            <div class="col-md-6 mb-3 mb-md-0">
+              <label for="name" class="mef-form-label">Nome Completo</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-person"></i></span>
+                <input type="text" class="form-control mef-form-control" id="name" name="name" placeholder="Digite seu nome" required>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <label for="username" class="mef-form-label">Nome de Usuário</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-person-badge"></i></span>
+                <input type="text" class="form-control mef-form-control" id="username" name="username" placeholder="Escolha um usuário" required>
+              </div>
             </div>
           </div>
-          <div class="col-md-6">
-            <label for="username" class="form-label">Nome de Usuário</label>
+          
+          <div class="mb-3">
+            <label for="email" class="mef-form-label">E-mail</label>
             <div class="input-group">
-              <span class="input-group-text"><i class="bi bi-person-badge"></i></span>
-              <input type="text" class="form-control" id="username" name="username" placeholder="Escolha um usuário" required>
+              <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+              <input type="email" class="form-control mef-form-control" id="email" name="email" placeholder="Digite seu e-mail" required>
             </div>
           </div>
-        </div>
-        
-        <div class="mb-3">
-          <label for="email" class="form-label">E-mail</label>
-          <div class="input-group">
-            <span class="input-group-text"><i class="bi bi-envelope"></i></span>
-            <input type="email" class="form-control" id="email" name="email" placeholder="Digite seu e-mail" required>
-          </div>
-        </div>
-        
-        <div class="row mb-4">
-          <div class="col-md-6 mb-3 mb-md-0">
-            <label for="password" class="form-label">Senha</label>
-            <div class="input-group">
-              <span class="input-group-text"><i class="bi bi-lock"></i></span>
-              <input type="password" class="form-control" id="password" name="password" placeholder="Crie uma senha" required>
+          
+          <div class="row mb-4">
+            <div class="col-md-6 mb-3 mb-md-0">
+              <label for="password" class="mef-form-label">Senha</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                <input type="password" class="form-control mef-form-control" id="password" name="password" placeholder="Crie uma senha" required>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <label for="confirmPassword" class="mef-form-label">Confirme a Senha</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
+                <input type="password" class="form-control mef-form-control" id="confirmPassword" name="confirmPassword" placeholder="Repita a senha" required>
+              </div>
             </div>
           </div>
-          <div class="col-md-6">
-            <label for="confirmPassword" class="form-label">Confirme a Senha</label>
-            <div class="input-group">
-              <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
-              <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" placeholder="Repita a senha" required>
-            </div>
+          
+          <div class="d-grid gap-2 mb-4">
+            <button type="submit" class="btn btn-save">
+              <i class="bi bi-person-plus me-2"></i>Criar Conta
+            </button>
           </div>
-        </div>
-        
-        <div class="d-grid gap-2 mb-3">
-          <button type="submit" class="btn btn-save">
-            <i class="bi bi-person-plus me-2"></i>Criar Conta
-          </button>
-        </div>
-        
-        <div class="text-center">
-          <a href="login.php" class="btn btn-outline-light w-100">
-            <i class="bi bi-box-arrow-in-right me-2"></i>Já tem conta? Faça login
-          </a>
-        </div>
-      </form>
+          
+          <div class="text-center">
+            <a href="login.php" class="btn btn-outline-light w-100">
+              <i class="bi bi-box-arrow-in-right me-2"></i>Já tem conta? Faça login
+            </a>
+          </div>
+        </form>
+      </div>
     </div>
   </main>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../bootstrap-5.0.2-dist/js/bootstrap.bundle.min.js"></script>
   <script>
     // Validação básica de confirmação de senha
     document.querySelector('form').addEventListener('submit', function(e) {

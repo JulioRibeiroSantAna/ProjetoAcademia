@@ -1,8 +1,6 @@
 <?php
-// Iniciar sessão se não estiver iniciada
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+// UsuarioLogado/conversa.php
+require_once '../config.php';
 
 // Verificar se o usuário está logado como usuário comum
 if (!isset($_SESSION['tipo_usuario']) || $_SESSION['tipo_usuario'] !== 'usuario') {
@@ -16,36 +14,26 @@ if (!isset($_SESSION['tipo_usuario']) || $_SESSION['tipo_usuario'] !== 'usuario'
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Conversa - MEF</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="../bootstrap-5.0.2-dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../styles.css">
-  <style>
-    .conversa-container {
-      min-height: calc(100vh - 200px);
-      display: flex;
-      flex-direction: column;
-    }
-    .chat-wrapper {
-      flex: 1;
-      margin-bottom: 2rem;
-    }
-    .chat-messages {
-      height: 400px;
-      overflow-y: auto;
-    }
-  </style>
 </head>
 <body>
   <?php include '../includes-Gerais/navbar-dinamica.php'; ?>
 
-  <main class="container mt-5 pt-4 conversa-container">
-    <?php include '../includes-Gerais/conversa-dinamica.php'; ?>
+  <main class="logged-container">
+    <div class="container-symmetric">
+      <div class="row justify-content-center">
+        <div class="col-12 col-lg-10">
+          <?php include '../includes-Gerais/conversa-dinamica.php'; ?>
+        </div>
+      </div>
+    </div>
   </main>
 
   <?php include '../includes-Gerais/footer.php'; ?>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="../js/menu.js"></script>
-  <script type="module" src="../js/main.js"></script>
+  <script src="../bootstrap-5.0.2-dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

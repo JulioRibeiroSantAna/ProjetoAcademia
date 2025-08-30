@@ -1,8 +1,6 @@
 <?php
-// Iniciar sessão se não estiver iniciada
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+// AdmLogado/videos-apoio-Adm.php
+require_once '../config.php';
 
 // Verificar se o usuário é admin de verdade
 if (!isset($_SESSION['tipo_usuario']) || $_SESSION['tipo_usuario'] !== 'admin') {
@@ -16,38 +14,26 @@ if (!isset($_SESSION['tipo_usuario']) || $_SESSION['tipo_usuario'] !== 'admin') 
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Vídeos de Apoio - Admin - MEF</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="../bootstrap-5.0.2-dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../styles.css">
-  <style>
-    .videos-container {
-      min-height: calc(100vh - 200px);
-      display: flex;
-      flex-direction: column;
-    }
-    .content-wrapper {
-      flex: 1;
-      margin-bottom: 2rem;
-    }
-    .video-card {
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-    .video-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-    }
-  </style>
 </head>
 <body>
   <?php include '../includes-Gerais/navbar-dinamica.php'; ?>
 
-  <main class="container mt-5 pt-4 videos-container">
-    <?php include '../includes-Gerais/videos-apoio-dinamico.php'; ?>
+  <main class="logged-container">
+    <div class="container-symmetric">
+      <div class="row justify-content-center">
+        <div class="col-12 col-lg-10">
+          <?php include '../includes-Gerais/videos-apoio-dinamico.php'; ?>
+        </div>
+      </div>
+    </div>
   </main>
 
   <?php include '../includes-Gerais/footer.php'; ?>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="../js/menu.js"></script>
+  <script src="../bootstrap-5.0.2-dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
