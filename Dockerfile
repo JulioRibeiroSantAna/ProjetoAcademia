@@ -1,11 +1,35 @@
 FROM php:8.2-apache
 
-# Instala extensões necessárias do PHP
-RUN docker-php-ext-install mysqli pdo pdo_mysql
+# Atualiza a lista de pacotes e instala dependências
+RUN apt-get update && apt-get install -y \
+    libpng-dev \
+    libjpeg-dev \
+    libfreetype6-dev \
+    libonig-dev \
+    libxml2-dev \
+    zip \
+    unzip \
+    && rm -rf /var/lib/apt/lists/*
 
-# Habilita o mod_rewrite e permite uso de .htaccess
+# Instala extensões necessárias do PHP
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg
+RUN docker-php-ext-install mysqli pdo pdo_mysql gd mbstring xml
+
+# Habilita o mod_rewrite
 RUN a2enmod rewrite
-RUN sed -i 's/AllowOverride None/AllowOverride All/g' /etc/apache2/apache2.conf
+RUN a2enmod headers
+
+# Configurações do Apache
+RUN echo "<VirtualHost *:80>\n\
+    DocumentRoot /var/www/html\n\
+    <Directory /var/www/html>\n\
+        Options Indexes FollowSymLinks\n\
+        AllowOverride All\n\
+        Require all granted\n\
+        Order allow,deny\n\
+        Allow from all\n\
+    </Directory>\n\
+</VirtualHost>" > /etc/apache2/sites-available/000-default.conf
 
 # Copia o conteúdo do projeto para dentro do container
 COPY . /var/www/html/
@@ -14,24 +38,9 @@ COPY . /var/www/html/
 WORKDIR /var/www/html
 
 # Ajusta permissões
-RUN chmod -R 755 /var/www/html
-RUN chown -R www-data:www-data /var/www/html
-
-# Configuração para garantir que o .htaccess funcione e o index.php seja carregado automaticamente
-RUN printf "\n<Directory /var/www/html>\n\
-    Options Indexes FollowSymLinks\n\
-    AllowOverride All\n\
-    Require all granted\n\
-</Directory>\n" >> /etc/apache2/apache2.conf
-
-# Garante que o Apache priorize o index.php
-RUN echo "<IfModule dir_module>\n\
-    DirectoryIndex index.php index.html\n\
-</IfModule>" > /etc/apache2/conf-available/docker-php.conf \
- && a2enconf docker-php
-
-# Adiciona um arquivo index.php de teste
-RUN echo "<?php phpinfo(); ?>" > /var/www/html/index.php
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 755 /var/www/html \
+    && find /var/www/html -type f -exec chmod 644 {} \;
 
 # Expõe a porta padrão do Apache
 EXPOSE 80

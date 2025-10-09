@@ -1,13 +1,55 @@
 <?php
 // Autenticacao/cadastro.php
 require_once '../config.php';
+require_once 'validacao.php';
+require_once '../db_connection.php';
 
-// Processar formulário se for submetido
+// Processar cadastro se for submetido
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Lógica de cadastro (será implementada posteriormente)
-    $_SESSION['mensagem'] = 'Cadastro realizado com sucesso! Faça login.';
-    header('Location: login.php');
-    exit;
+    // Sanitizar entradas
+    $dados = sanitizarEntrada($_POST);
+    $nome = $dados['name'] ?? '';
+    $email = $dados['email'] ?? '';
+    $senha = $dados['password'] ?? '';
+    $confirmSenha = $dados['confirmPassword'] ?? '';
+    $tipo = 'usuario'; // Cadastro padrão é usuário comum
+
+    // Validar dados
+    $erros = validarCadastro($nome, $email, $senha, $confirmSenha);
+    
+    if (empty($erros)) {
+        // Verificar se o e-mail já existe
+        try {
+            $stmt = $pdo->prepare('SELECT id_usuario FROM usuarios WHERE email = ?');
+            $stmt->execute([$email]);
+            
+            if ($stmt->fetch()) {
+                $_SESSION['mensagem'] = 'E-mail já cadastrado!';
+                $_SESSION['tipo_mensagem'] = 'erro';
+            } else {
+                // Inserir novo usuário
+                $hash = password_hash($senha, PASSWORD_DEFAULT);
+                $stmt = $pdo->prepare('INSERT INTO usuarios (nome, email, senha, tipo, telefone) VALUES (?, ?, ?, ?, NULL)');
+                
+                if ($stmt->execute([$nome, $email, $hash, $tipo])) {
+                    $_SESSION['mensagem'] = 'Cadastro realizado com sucesso! Faça login.';
+                    $_SESSION['tipo_mensagem'] = 'sucesso';
+                    header('Location: login.php');
+                    exit;
+                } else {
+                    $_SESSION['mensagem'] = 'Erro ao cadastrar usuário!';
+                    $_SESSION['tipo_mensagem'] = 'erro';
+                }
+            }
+        } catch (PDOException $e) {
+            $_SESSION['mensagem'] = 'Erro no servidor. Tente novamente.';
+            $_SESSION['tipo_mensagem'] = 'erro';
+            error_log("Erro cadastro: " . $e->getMessage());
+        }
+    } else {
+        $_SESSION['mensagem'] = implode('<br>', $erros);
+        $_SESSION['tipo_mensagem'] = 'erro';
+    }
 }
 ?>
 
@@ -32,24 +74,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <h1 class="text-center mb-4 fade-in-up">Cadastro</h1>
         
         <?php if (isset($_SESSION['mensagem'])): ?>
-          <div class="alert alert-success fade-in-up"><?php echo $_SESSION['mensagem']; unset($_SESSION['mensagem']); ?></div>
+          <div class="alert alert-<?php echo ($_SESSION['tipo_mensagem'] === 'sucesso') ? 'success' : 'danger'; ?> fade-in-up">
+            <?php 
+            echo $_SESSION['mensagem']; 
+            unset($_SESSION['mensagem']);
+            unset($_SESSION['tipo_mensagem']);
+            ?>
+          </div>
         <?php endif; ?>
         
         <form method="POST" action="" class="fade-in-up">
-          <div class="row mb-3">
-            <div class="col-md-6 mb-3 mb-md-0">
-              <label for="name" class="mef-form-label">Nome Completo</label>
-              <div class="input-group">
-                <span class="input-group-text"><i class="bi bi-person"></i></span>
-                <input type="text" class="form-control mef-form-control" id="name" name="name" placeholder="Digite seu nome" required>
-              </div>
-            </div>
-            <div class="col-md-6">
-              <label for="username" class="mef-form-label">Nome de Usuário</label>
-              <div class="input-group">
-                <span class="input-group-text"><i class="bi bi-person-badge"></i></span>
-                <input type="text" class="form-control mef-form-control" id="username" name="username" placeholder="Escolha um usuário" required>
-              </div>
+          <div class="mb-3">
+            <label for="name" class="mef-form-label">Nome Completo</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-person"></i></span>
+              <input type="text" class="form-control mef-form-control" id="name" name="name" 
+                     placeholder="Digite seu nome completo" required
+                     value="<?php echo htmlspecialchars($_POST['name'] ?? ''); ?>">
             </div>
           </div>
           
@@ -57,7 +98,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <label for="email" class="mef-form-label">E-mail</label>
             <div class="input-group">
               <span class="input-group-text"><i class="bi bi-envelope"></i></span>
-              <input type="email" class="form-control mef-form-control" id="email" name="email" placeholder="Digite seu e-mail" required>
+              <input type="email" class="form-control mef-form-control" id="email" name="email" 
+                     placeholder="Digite seu e-mail" required
+                     value="<?php echo htmlspecialchars($_POST['email'] ?? ''); ?>">
             </div>
           </div>
           
@@ -66,14 +109,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
               <label for="password" class="mef-form-label">Senha</label>
               <div class="input-group">
                 <span class="input-group-text"><i class="bi bi-lock"></i></span>
-                <input type="password" class="form-control mef-form-control" id="password" name="password" placeholder="Crie uma senha" required>
+                <input type="password" class="form-control mef-form-control" id="password" name="password" 
+                       placeholder="Mínimo 3 caracteres" required>
               </div>
             </div>
             <div class="col-md-6">
               <label for="confirmPassword" class="mef-form-label">Confirme a Senha</label>
               <div class="input-group">
                 <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
-                <input type="password" class="form-control mef-form-control" id="confirmPassword" name="confirmPassword" placeholder="Repita a senha" required>
+                <input type="password" class="form-control mef-form-control" id="confirmPassword" name="confirmPassword" 
+                       placeholder="Repita a senha" required>
               </div>
             </div>
           </div>
@@ -104,6 +149,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       if (password !== confirmPassword) {
         e.preventDefault();
         alert('As senhas não coincidem!');
+        return false;
+      }
+      
+      if (password.length < 3) {
+        e.preventDefault();
+        alert('A senha deve ter pelo menos 3 caracteres!');
+        return false;
       }
     });
   </script>

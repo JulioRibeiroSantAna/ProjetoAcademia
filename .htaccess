@@ -1,0 +1,18 @@
+RewriteEngine On
+
+# Redireciona para HTTPS (opcional)
+# RewriteCond %{HTTPS} off
+# RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# Remove a extensão .php das URLs
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME}\.php -f
+RewriteRule ^(.*)$ $1.php [L]
+
+# Define index.php como página inicial
+DirectoryIndex index.php index.html
+
+# Configurações de segurança
+<FilesMatch "\.(php|html)$">
+    Header always set X-Content-Type-Options nosniff
+</FilesMatch>

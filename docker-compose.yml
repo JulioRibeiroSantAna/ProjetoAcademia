@@ -7,7 +7,9 @@ services:
     ports:
       - "8080:80"
     volumes:
-      - ./src:/var/www/html # Certifique-se de que ./src contém o index.php
+      - ./:/var/www/html # Descomente esta linha para desenvolvimento
+    depends_on:
+      - db
     restart: always
 
   db:
@@ -22,7 +24,7 @@ services:
       - "3306:3306"
     volumes:
       - db_data:/var/lib/mysql
-      - ./docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d # Certifique-se de que o script SQL será carregado
+      - ./docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
     restart: always
 
   phpmyadmin:
@@ -34,6 +36,8 @@ services:
       PMA_PASSWORD: root
     ports:
       - "8081:80"
+    depends_on:
+      - db
     restart: always
 
 volumes:

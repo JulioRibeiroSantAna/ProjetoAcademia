@@ -25,11 +25,16 @@ if (strpos($base_url, '/Autenticacao') !== false) {
 // Define a constante BASE_URL
 define('BASE_URL', $base_url);
 
-// Configurações do banco de dados (quando for implementar)
-define('DB_HOST', 'localhost');
-define('DB_NAME', 'mef_db');
-define('DB_USER', 'root');
-define('DB_PASS', '');
+// Configurações do banco de dados para ambiente Docker
+define('DB_HOST', 'db');
+define('DB_NAME', 'sistema_nutricao');
+define('DB_USER', 'user');
+define('DB_PASS', 'password');
+
+// Configurações de segurança
+define('MIN_PASSWORD_LENGTH', 6);
+define('MAX_LOGIN_ATTEMPTS', 5);
+define('LOGIN_TIMEOUT', 900); // 15 minutos
 
 // Inicializar variáveis de sessão se não existirem
 if (!isset($_SESSION['tipo_usuario'])) {
@@ -37,5 +42,11 @@ if (!isset($_SESSION['tipo_usuario'])) {
 }
 if (!isset($_SESSION['nome_usuario'])) {
     $_SESSION['nome_usuario'] = 'Usuário';
+}
+if (!isset($_SESSION['login_attempts'])) {
+    $_SESSION['login_attempts'] = 0;
+}
+if (!isset($_SESSION['last_login_attempt'])) {
+    $_SESSION['last_login_attempt'] = 0;
 }
 ?>

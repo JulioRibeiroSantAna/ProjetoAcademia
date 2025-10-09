@@ -1,6 +1,8 @@
 <?php
 // Autenticacao/login.php
 require_once '../config.php';
+require_once 'validacao.php';
+require_once '../db_connection.php';
 
 // Verificar se veio redirecionado da página de profissionais
 if (isset($_GET['from']) && $_GET['from'] === 'profissionais') {
@@ -9,24 +11,52 @@ if (isset($_GET['from']) && $_GET['from'] === 'profissionais') {
 
 // Processar login se for submetido
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email = $_POST['email'] ?? '';
-    $password = $_POST['password'] ?? '';
+    // Sanitizar entradas
+    $dados = sanitizarEntrada($_POST);
+    $email = $dados['email'] ?? '';
+    $password = $dados['password'] ?? '';
     
-    // Logins provisórios
-    if ($email === 'admin@mef.com' && $password === 'admin123') {
-        $_SESSION['tipo_usuario'] = 'admin';
-        $_SESSION['nome_usuario'] = 'Administrador';
-        header('Location: ../AdmLogado/logado-Adm.php');
-        exit;
-    }
-    elseif ($email === 'usuario@mef.com' && $password === 'user123') {
-        $_SESSION['tipo_usuario'] = 'usuario';
-        $_SESSION['nome_usuario'] = 'Usuário Teste';
-        header('Location: ../UsuarioLogado/logado.php');
-        exit;
-    }
-    else {
-        $erro = 'E-mail ou senha inválidos!';
+    // Validar dados
+    if (!validarEmail($email)) {
+        $erro = 'E-mail inválido!';
+    } elseif (!validarSenha($password)) {
+        $erro = 'Senha deve ter pelo menos 3 caracteres!';
+    } else {
+        try {
+            // Buscar usuário
+            $stmt = $pdo->prepare('SELECT * FROM usuarios WHERE email = ?');
+            $stmt->execute([$email]);
+            $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($usuario) {
+                // Verificar senha
+                if (password_verify($password, $usuario['senha'])) {
+                    // Login bem-sucedido
+                    $_SESSION['id_usuario'] = $usuario['id_usuario'];
+                    $_SESSION['tipo_usuario'] = $usuario['tipo'];
+                    $_SESSION['nome_usuario'] = $usuario['nome'];
+                    $_SESSION['email_usuario'] = $usuario['email'];
+                    $_SESSION['login_time'] = time();
+                    
+                    // Redirecionar conforme tipo de usuário
+                    if ($usuario['tipo'] === 'admin') {
+                        header('Location: ../AdmLogado/logado-Adm.php');
+                    } elseif (in_array($usuario['tipo'], ['usuario', 'nutricionista'])) {
+                        header('Location: ../UsuarioLogado/logado.php');
+                    } else {
+                        header('Location: ../index.php');
+                    }
+                    exit;
+                } else {
+                    $erro = 'E-mail ou senha incorretos!';
+                }
+            } else {
+                $erro = 'E-mail ou senha incorretos!';
+            }
+        } catch (PDOException $e) {
+            $erro = 'Erro no servidor. Tente novamente.';
+            error_log("Erro login: " . $e->getMessage());
+        }
     }
 }
 ?>
@@ -52,7 +82,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <h1 class="text-center mb-4 fade-in-up">Login</h1>
         
         <?php if (isset($_SESSION['mensagem'])): ?>
-          <div class="alert alert-success fade-in-up"><?php echo $_SESSION['mensagem']; unset($_SESSION['mensagem']); ?></div>
+          <div class="alert alert-success fade-in-up">
+            <?php 
+            echo $_SESSION['mensagem']; 
+            unset($_SESSION['mensagem']);
+            ?>
+          </div>
         <?php endif; ?>
         
         <?php if (isset($mensagem_redirect)): ?>
@@ -72,7 +107,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <label for="loginEmail" class="mef-form-label">E-mail</label>
             <div class="input-group">
               <span class="input-group-text"><i class="bi bi-envelope"></i></span>
-              <input type="email" class="form-control mef-form-control" id="loginEmail" name="email" placeholder="Digite seu e-mail" required>
+              <input type="email" class="form-control mef-form-control" id="loginEmail" name="email" 
+                     placeholder="Digite seu e-mail" required
+                     value="<?php echo htmlspecialchars($_POST['email'] ?? ''); ?>">
             </div>
           </div>
           
@@ -80,7 +117,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <label for="loginPassword" class="mef-form-label">Senha</label>
             <div class="input-group">
               <span class="input-group-text"><i class="bi bi-lock"></i></span>
-              <input type="password" class="form-control mef-form-control" id="loginPassword" name="password" placeholder="Digite sua senha" required>
+              <input type="password" class="form-control mef-form-control" id="loginPassword" name="password" 
+                     placeholder="Digite sua senha" required>
             </div>
           </div>
           
@@ -88,20 +126,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <button type="submit" class="btn mef-btn-primary">
               <i class="bi bi-box-arrow-in-right me-2"></i>Entrar
             </button>
-          </div>
-          
-          <!-- Botões provisórios para teste -->
-          <div class="row mb-4">
-            <div class="col-md-6 mb-2">
-              <button type="button" class="btn btn-outline-warning w-100" onclick="preencherLogin('admin')">
-                <i class="bi bi-person-gear me-2"></i>Login Admin
-              </button>
-            </div>
-            <div class="col-md-6">
-              <button type="button" class="btn btn-outline-info w-100" onclick="preencherLogin('usuario')">
-                <i class="bi bi-person me-2"></i>Login Usuário
-              </button>
-            </div>
           </div>
           
           <div class="text-center">
@@ -115,18 +139,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   </main>
 
   <script src="../bootstrap-5.0.2-dist/js/bootstrap.bundle.min.js"></script>
-  <script>
-    function preencherLogin(tipo) {
-      if (tipo === 'admin') {
-        document.getElementById('loginEmail').value = 'admin@mef.com';
-        document.getElementById('loginPassword').value = 'admin123';
-      } else if (tipo === 'usuario') {
-        document.getElementById('loginEmail').value = 'usuario@mef.com';
-        document.getElementById('loginPassword').value = 'user123';
-      }
-      // Auto-submit do formulário
-      document.querySelector('form').submit();
-    }
-  </script>
 </body>
 </html>
