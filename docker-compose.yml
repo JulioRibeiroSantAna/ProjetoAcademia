@@ -7,5 +7,34 @@ services:
     ports:
       - "8080:80"
     volumes:
-      - .:/var/www/html
+      - ./src:/var/www/html # Certifique-se de que ./src contém o index.php
     restart: always
+
+  db:
+    image: mysql:8.0
+    container_name: siteacademia_db
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: sistema_nutricao
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d # Certifique-se de que o script SQL será carregado
+    restart: always
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: siteacademia_phpmyadmin
+    environment:
+      PMA_HOST: db
+      PMA_USER: root
+      PMA_PASSWORD: root
+    ports:
+      - "8081:80"
+    restart: always
+
+volumes:
+  db_data:

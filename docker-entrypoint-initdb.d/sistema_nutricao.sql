@@ -296,6 +296,23 @@ ALTER TABLE `videos`
 ALTER TABLE `videos_topicos`
   ADD CONSTRAINT `videos_topicos_ibfk_1` FOREIGN KEY (`videos_id`) REFERENCES `videos` (`id_video`),
   ADD CONSTRAINT `videos_topicos_ibfk_2` FOREIGN KEY (`topicos_id`) REFERENCES `topicos` (`id_topico`);
+
+--
+-- Inserindo dados padrão
+--
+
+-- Inserindo especialidade padrão
+INSERT INTO `especialidades` (`id_especialidade`, `nome`) VALUES
+(1, 'Nutrição Clínica');
+
+-- Inserindo usuário padrão
+INSERT INTO `usuarios` (`id_usuario`, `nome`, `email`, `senha`, `tipo`, `telefone`) VALUES
+(1, 'Nutricionista Padrão', 'nutricionista@exemplo.com', MD5('senha123'), 'nutricionista', '123456789');
+
+-- Inserindo nutricionista vinculado ao usuário padrão
+INSERT INTO `nutricionistas` (`id_nutricionista`, `id_especialidade`, `descricao`, `foto_perfil`) VALUES
+(1, 1, 'Nutricionista especializado em dietas personalizadas.', NULL);
+
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
