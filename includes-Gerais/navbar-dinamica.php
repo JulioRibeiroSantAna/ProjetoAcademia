@@ -107,19 +107,22 @@ if (isset($_SESSION['tipo_usuario']) && $_SESSION['tipo_usuario'] !== '') {
     <li><hr class="dropdown-divider"></li>
     <li><a class="dropdown-item text-danger" href="' . BASE_URL . '/Autenticacao/logout.php">Sair</a></li>';
     
-    // Constroi o menu dropdown completo para usuários logados
-    $menu_dropdown = '
-    <div class="dropdown ms-3">
-        <button class="btn btn-light dropdown-toggle" type="button" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false">
-            <i class="bi bi-person-circle me-1"></i> ' . htmlspecialchars($_SESSION['nome_usuario'] ?? 'Menu') . '
-        </button>
-        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
-            ' . $menu_videos_apoio . '
-            ' . $menu_profissionais . '
-            ' . $menu_perfil . '
-            ' . $menu_logout . '
-        </ul>
-    </div>';
+  // Constroi o menu dropdown completo para usuários logados
+  $nome_exibicao = isset($_SESSION['apelido_usuario']) && $_SESSION['apelido_usuario'] !== ''
+    ? $_SESSION['apelido_usuario']
+    : (isset($_SESSION['nome_usuario']) ? $_SESSION['nome_usuario'] : 'Menu');
+  $menu_dropdown = '
+  <div class="dropdown ms-3">
+    <button class="btn btn-light dropdown-toggle" type="button" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false">
+    <i class="bi bi-person-circle me-1"></i> ' . htmlspecialchars($nome_exibicao) . '
+    </button>
+    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
+      ' . $menu_videos_apoio . '
+      ' . $menu_profissionais . '
+      ' . $menu_perfil . '
+      ' . $menu_logout . '
+    </ul>
+  </div>';
 } else {
     // Botão de login para usuários não logados
     $menu_dropdown = '

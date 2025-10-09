@@ -8,44 +8,44 @@ require_once '../db_connection.php';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Sanitizar entradas
     $dados = sanitizarEntrada($_POST);
-    $nome = $dados['name'] ?? '';
-    $email = $dados['email'] ?? '';
-    $senha = $dados['password'] ?? '';
-    $confirmSenha = $dados['confirmPassword'] ?? '';
-    $tipo = 'usuario'; // Cadastro padrão é usuário comum
+  $nome = $dados['name'] ?? '';
+  $apelido = $dados['apelido'] ?? '';
+  $email = $dados['email'] ?? '';
+  $senha = $dados['password'] ?? '';
+  $confirmSenha = $dados['confirmPassword'] ?? '';
+  $telefone = $dados['telefone'] ?? '';
+  $tipo = 'usuario'; // Cadastro padrão é usuário comum
 
     // Validar dados
-    $erros = validarCadastro($nome, $email, $senha, $confirmSenha);
+  $erros = validarCadastro($nome, $apelido, $email, $senha, $confirmSenha, $telefone);
     
     if (empty($erros)) {
         // Verificar se o e-mail já existe
-        try {
-            $stmt = $pdo->prepare('SELECT id_usuario FROM usuarios WHERE email = ?');
-            $stmt->execute([$email]);
-            
-            if ($stmt->fetch()) {
-                $_SESSION['mensagem'] = 'E-mail já cadastrado!';
-                $_SESSION['tipo_mensagem'] = 'erro';
-            } else {
-                // Inserir novo usuário
-                $hash = password_hash($senha, PASSWORD_DEFAULT);
-                $stmt = $pdo->prepare('INSERT INTO usuarios (nome, email, senha, tipo, telefone) VALUES (?, ?, ?, ?, NULL)');
-                
-                if ($stmt->execute([$nome, $email, $hash, $tipo])) {
-                    $_SESSION['mensagem'] = 'Cadastro realizado com sucesso! Faça login.';
-                    $_SESSION['tipo_mensagem'] = 'sucesso';
-                    header('Location: login.php');
-                    exit;
-                } else {
-                    $_SESSION['mensagem'] = 'Erro ao cadastrar usuário!';
-                    $_SESSION['tipo_mensagem'] = 'erro';
-                }
-            }
-        } catch (PDOException $e) {
-            $_SESSION['mensagem'] = 'Erro no servidor. Tente novamente.';
-            $_SESSION['tipo_mensagem'] = 'erro';
-            error_log("Erro cadastro: " . $e->getMessage());
+    try {
+      $stmt = $pdo->prepare('SELECT id_usuario FROM usuarios WHERE email = ?');
+      $stmt->execute([$email]);
+      if ($stmt->fetch()) {
+        $_SESSION['mensagem'] = 'E-mail já cadastrado!';
+        $_SESSION['tipo_mensagem'] = 'erro';
+      } else {
+        // Inserir novo usuário
+        $hash = password_hash($senha, PASSWORD_DEFAULT);
+        $stmt = $pdo->prepare('INSERT INTO usuarios (nome, apelido, email, senha, tipo, telefone) VALUES (?, ?, ?, ?, ?, ?)');
+        if ($stmt->execute([$nome, $apelido, $email, $hash, $tipo, $telefone])) {
+          $_SESSION['mensagem'] = 'Cadastro realizado com sucesso! Faça login.';
+          $_SESSION['tipo_mensagem'] = 'sucesso';
+          header('Location: login.php');
+          exit;
+        } else {
+          $_SESSION['mensagem'] = 'Erro ao cadastrar usuário!';
+          $_SESSION['tipo_mensagem'] = 'erro';
         }
+      }
+    } catch (PDOException $e) {
+      $_SESSION['mensagem'] = 'Erro no servidor. Tente novamente.';
+      $_SESSION['tipo_mensagem'] = 'erro';
+      error_log("Erro cadastro: " . $e->getMessage());
+    }
     } else {
         $_SESSION['mensagem'] = implode('<br>', $erros);
         $_SESSION['tipo_mensagem'] = 'erro';
@@ -93,6 +93,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                      value="<?php echo htmlspecialchars($_POST['name'] ?? ''); ?>">
             </div>
           </div>
+          <div class="mb-3">
+            <label for="apelido" class="mef-form-label">Apelido (nome curto)</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-person-badge"></i></span>
+              <input type="text" class="form-control mef-form-control" id="apelido" name="apelido" 
+                     placeholder="Digite um apelido curto" required
+                     value="<?php echo htmlspecialchars($_POST['apelido'] ?? ''); ?>">
+            </div>
+          </div>
           
           <div class="mb-3">
             <label for="email" class="mef-form-label">E-mail</label>
@@ -104,6 +113,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
           </div>
           
+          <div class="mb-3">
+            <label for="telefone" class="mef-form-label">Telefone</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+              <input type="tel" class="form-control mef-form-control" id="telefone" name="telefone" 
+                     placeholder="Digite seu telefone" required value="<?php echo htmlspecialchars($_POST['telefone'] ?? ''); ?>">
+            </div>
+          </div>
           <div class="row mb-4">
             <div class="col-md-6 mb-3 mb-md-0">
               <label for="password" class="mef-form-label">Senha</label>
