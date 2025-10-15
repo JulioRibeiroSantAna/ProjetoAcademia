@@ -5,168 +5,102 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 require_once __DIR__ . '/../db_connection.php';
-require_once __DIR__ . '/../Autenticacao/validacao.php';
 
-$is_admin = (isset($_SESSION['tipo_usuario']) && $_SESSION['tipo_usuario'] === 'admin');
-$id_usuario = $_SESSION['id_usuario'] ?? null;
-$usuario_nome = '';
-$usuario_email = '';
-$usuario_telefone = '';
-$usuario_data_nascimento = '';
-$usuario_foto = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
+$is_admin = ($_SESSION['tipo_usuario'] === 'admin');
+$id_usuario = $_SESSION['id_usuario'];
 $msg = '';
-$msg_tipo = '';
 
-// Buscar dados do usuário no banco
-if ($id_usuario) {
-    $stmt = $pdo->prepare('SELECT nome, apelido, email, telefone FROM usuarios WHERE id_usuario = ?');
-    $stmt->execute([$id_usuario]);
-    $user = $stmt->fetch(PDO::FETCH_ASSOC);
-    if ($user) {
-        $usuario_nome = $user['nome'];
-        $usuario_apelido = $user['apelido'];
-        $usuario_email = $user['email'];
-        $usuario_telefone = $user['telefone'];
-    }
-}
+// Buscar dados do usuário
+$stmt = $pdo->prepare('SELECT nome, apelido, email, telefone FROM usuarios WHERE id_usuario = ?');
+$stmt->execute([$id_usuario]);
+$user = $stmt->fetch();
 
-// Atualizar dados se enviado via POST
+// Se enviou formulário
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $dados = sanitizarEntrada($_POST);
-    $novo_nome = $dados['nome'] ?? '';
-    $novo_apelido = $dados['apelido'] ?? '';
-    $novo_email = $dados['email'] ?? '';
-    $novo_telefone = $dados['telefone'] ?? '';
-    $nova_senha = $dados['senha'] ?? '';
-    $confirmar_senha = $dados['confirmarSenha'] ?? '';
-
+    $nome = trim($_POST['nome']);
+    $apelido = trim($_POST['apelido']);
+    $email = trim($_POST['email']);
+    $telefone = trim($_POST['telefone']);
+    $senha = $_POST['senha'];
+    
     $erros = [];
-    if (!validarNome($novo_nome)) $erros[] = 'Nome inválido.';
-    if (!validarApelido($novo_apelido)) $erros[] = 'Apelido inválido.';
-    if (!validarEmail($novo_email)) $erros[] = 'E-mail inválido.';
-    if (!validarTelefone($novo_telefone)) $erros[] = 'Telefone inválido.';
-    if ($nova_senha && $nova_senha !== $confirmar_senha) $erros[] = 'As senhas não coincidem!';
-    if ($nova_senha && !validarSenha($nova_senha)) $erros[] = 'A senha deve ter pelo menos 3 caracteres!';
-
-    // Verificar se o e-mail já existe para outro usuário
+    
+    // Validações simples
+    if (strlen($nome) < 2) $erros[] = 'Nome muito curto';
+    if (strlen($apelido) < 2) $erros[] = 'Apelido muito curto';
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) $erros[] = 'E-mail inválido';
+    if ($senha && strlen($senha) < 3) $erros[] = 'Senha muito curta';
+    
+    // Verificar e-mail único
     $stmt = $pdo->prepare('SELECT id_usuario FROM usuarios WHERE email = ? AND id_usuario != ?');
-    $stmt->execute([$novo_email, $id_usuario]);
-    if ($stmt->fetch()) $erros[] = 'E-mail já cadastrado por outro usuário!';
+    $stmt->execute([$email, $id_usuario]);
+    if ($stmt->fetch()) $erros[] = 'E-mail já usado por outro usuário';
 
     if (empty($erros)) {
-        $sql = 'UPDATE usuarios SET nome = ?, apelido = ?, email = ?, telefone = ?';
-        $params = [$novo_nome, $novo_apelido, $novo_email, $novo_telefone];
-        if ($nova_senha) {
-            $sql .= ', senha = ?';
-            $params[] = password_hash($nova_senha, PASSWORD_DEFAULT);
-        }
-        $sql .= ' WHERE id_usuario = ?';
-        $params[] = $id_usuario;
-        $stmt = $pdo->prepare($sql);
-        if ($stmt->execute($params)) {
-            $msg = 'Perfil atualizado com sucesso!';
-            $msg_tipo = 'success';
-            $_SESSION['nome_usuario'] = $novo_nome;
-            $_SESSION['apelido_usuario'] = $novo_apelido;
-            $_SESSION['email_usuario'] = $novo_email;
-            $_SESSION['telefone_usuario'] = $novo_telefone;
-            $usuario_nome = $novo_nome;
-            $usuario_apelido = $novo_apelido;
-            $usuario_email = $novo_email;
-            $usuario_telefone = $novo_telefone;
+        // Atualizar dados
+        if ($senha) {
+            $stmt = $pdo->prepare('UPDATE usuarios SET nome = ?, apelido = ?, email = ?, telefone = ?, senha = ? WHERE id_usuario = ?');
+            $stmt->execute([$nome, $apelido, $email, $telefone, password_hash($senha, PASSWORD_DEFAULT), $id_usuario]);
         } else {
-            $msg = 'Erro ao atualizar perfil!';
-            $msg_tipo = 'danger';
+            $stmt = $pdo->prepare('UPDATE usuarios SET nome = ?, apelido = ?, email = ?, telefone = ? WHERE id_usuario = ?');
+            $stmt->execute([$nome, $apelido, $email, $telefone, $id_usuario]);
         }
+        
+        // Atualizar sessão
+        $_SESSION['nome_usuario'] = $nome;
+        $_SESSION['apelido_usuario'] = $apelido;
+        $_SESSION['email_usuario'] = $email;
+        $_SESSION['telefone_usuario'] = $telefone;
+        
+        $msg = 'Perfil atualizado com sucesso!';
+        $user = ['nome' => $nome, 'apelido' => $apelido, 'email' => $email, 'telefone' => $telefone];
     } else {
-        $msg = implode('<br>', $erros);
-        $msg_tipo = 'danger';
+        $msg = implode(', ', $erros);
     }
 }
 ?>
 
 <div class="mef-card">
     <div class="row">
-        <div class="col-md-4 text-center mb-4 mb-md-0">
-            <div class="mb-3">
-                <label for="fotoPerfil" class="d-inline-block cursor-pointer">
-                    <img src="<?php echo $usuario_foto; ?>" alt="Avatar do usuário" class="rounded-circle" style="width: 150px; height: 150px; object-fit: cover; cursor: pointer;">
-                </label>
-                <input type="file" id="fotoPerfil" accept="image/*" class="d-none">
-            </div>
-            <h3><?php echo $usuario_nome; ?></h3>
+        <div class="col-md-4 text-center mb-4">
+            <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" class="rounded-circle mb-3" style="width: 150px; height: 150px;">
+            <h3><?php echo $user['nome']; ?></h3>
         </div>
         
         <div class="col-md-8">
-            <h4 class="mb-4">Editar Informações Pessoais</h4>
+            <h4 class="mb-4">Editar Perfil</h4>
             
             <?php if ($msg): ?>
-                <div class="alert alert-<?php echo $msg_tipo; ?> fade-in-up"><?php echo $msg; ?></div>
+                <div class="alert alert-info"><?php echo $msg; ?></div>
             <?php endif; ?>
-            <form id="formEditarPerfil" method="POST" action="">
-                <div class="row">
-                    <div class="col-12 mb-3">
-                        <label for="nome" class="mef-form-label">Nome Completo</label>
-                        <input type="text" class="mef-form-control" id="nome" name="nome" value="<?php echo htmlspecialchars($usuario_nome); ?>" required>
-                    </div>
-                        <div class="col-12 mb-3">
-                            <label for="apelido" class="mef-form-label">Apelido (nome curto)</label>
-                            <input type="text" class="mef-form-control" id="apelido" name="apelido" value="<?php echo htmlspecialchars($usuario_apelido ?? ''); ?>" required>
-                        </div>
-                    <div class="col-md-6 mb-3">
-                        <label for="email" class="mef-form-label">E-mail</label>
-                        <input type="email" class="mef-form-control" id="email" name="email" value="<?php echo htmlspecialchars($usuario_email); ?>" required>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label for="telefone" class="mef-form-label">Telefone</label>
-                        <input type="tel" class="mef-form-control" id="telefone" name="telefone" value="<?php echo htmlspecialchars($usuario_telefone); ?>">
-                    </div>
-                    <!-- Campos de senha lado a lado -->
-                    <div class="col-md-6 mb-3">
-                        <label for="senha" class="mef-form-label">Nova Senha (opcional)</label>
-                        <input type="password" class="mef-form-control" id="senha" name="senha" placeholder="Deixe em branco para não alterar">
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label for="confirmarSenha" class="mef-form-label">Confirmar Nova Senha</label>
-                        <input type="password" class="mef-form-control" id="confirmarSenha" name="confirmarSenha" placeholder="Repita a nova senha">
-                    </div>
+            
+            <form method="POST">
+                <div class="mb-3">
+                    <label class="form-label">Nome Completo</label>
+                    <input type="text" class="form-control" name="nome" value="<?php echo $user['nome']; ?>" required>
                 </div>
-                <div class="mt-4 d-flex gap-3">
-                    <button type="submit" class="mef-btn-primary">
-                        <i class="bi bi-save me-2"></i>Salvar Alterações
-                    </button>
-                    <a href="<?php echo $is_admin ? '../AdmLogado/perfil-Adm.php' : '../UsuarioLogado/perfil.php'; ?>" class="btn btn-secondary d-flex align-items-center">
-                        <i class="bi bi-x-circle me-2"></i>Cancelar
-                    </a>
+                <div class="mb-3">
+                    <label class="form-label">Apelido</label>
+                    <input type="text" class="form-control" name="apelido" value="<?php echo $user['apelido']; ?>" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">E-mail</label>
+                    <input type="email" class="form-control" name="email" value="<?php echo $user['email']; ?>" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Telefone</label>
+                    <input type="tel" class="form-control" name="telefone" value="<?php echo $user['telefone']; ?>">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Nova Senha (deixe em branco para não alterar)</label>
+                    <input type="password" class="form-control" name="senha">
+                </div>
+                
+                <div class="d-flex gap-3">
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                    <a href="<?php echo $is_admin ? '../AdmLogado/perfil-Adm.php' : '../UsuarioLogado/perfil.php'; ?>" class="btn btn-secondary">Cancelar</a>
                 </div>
             </form>
         </div>
     </div>
 </div>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const fotoPerfil = document.getElementById('fotoPerfil');
-    const formEditarPerfil = document.getElementById('formEditarPerfil');
-    
-    // Click na foto para abrir o seletor de arquivos
-    document.querySelector('.cursor-pointer').addEventListener('click', function() {
-        fotoPerfil.click();
-    });
-    
-    if (fotoPerfil) {
-        fotoPerfil.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    document.querySelector('.cursor-pointer img').src = event.target.result;
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-    }
-    
-    // Remover submit JS, pois agora é processado no backend
-});
-</script>

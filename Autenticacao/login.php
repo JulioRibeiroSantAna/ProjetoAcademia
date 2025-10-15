@@ -23,19 +23,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $erro = 'Senha deve ter pelo menos 3 caracteres!';
     } else {
         try {
-            // Buscar usuário
-      $stmt = $pdo->prepare('SELECT * FROM usuarios WHERE email = ?');
+            // Buscar usuário COM APELIDO
+            $stmt = $pdo->prepare('SELECT * FROM usuarios WHERE email = ?');
             $stmt->execute([$email]);
             $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if ($usuario) {
-                // Verificar senha
-                if (password_verify($password, $usuario['senha'])) {
-                    // Login bem-sucedido
+                $senha_valida = false;
+                
+                // VERIFICAR SE A SENHA ESTÁ CRIPTOGRAFADA OU EM TEXTO SIMPLES
+                if (strlen($usuario['senha']) > 20 && strpos($usuario['senha'], '$') === 0) {
+                    // Senha criptografada - usar password_verify
+                    $senha_valida = password_verify($password, $usuario['senha']);
+                } else {
+                    // Senha em texto simples - comparar diretamente
+                    $senha_valida = ($password === $usuario['senha']);
+                    
+                    // OPCIONAL: Criptografar a senha após o login bem-sucedido
+                    if ($senha_valida) {
+                        $nova_senha_hash = password_hash($password, PASSWORD_DEFAULT);
+                        $stmt_update = $pdo->prepare('UPDATE usuarios SET senha = ? WHERE id_usuario = ?');
+                        $stmt_update->execute([$nova_senha_hash, $usuario['id_usuario']]);
+                    }
+                }
+                
+                if ($senha_valida) {
+                    // Login bem-sucedido - SALVAR APELIDO NA SESSÃO
                     $_SESSION['id_usuario'] = $usuario['id_usuario'];
                     $_SESSION['tipo_usuario'] = $usuario['tipo'];
                     $_SESSION['nome_usuario'] = $usuario['nome'];
+                    $_SESSION['apelido_usuario'] = $usuario['apelido'];
                     $_SESSION['email_usuario'] = $usuario['email'];
+                    $_SESSION['telefone_usuario'] = $usuario['telefone'];
                     $_SESSION['login_time'] = time();
                     
                     // Redirecionar conforme tipo de usuário
@@ -80,6 +99,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="container-symmetric">
       <div class="mef-card auth-card">
         <h1 class="text-center mb-4 fade-in-up">Login</h1>
+        
+        <!-- Credenciais para teste -->
+        <div class="alert alert-info mb-4">
+            <strong>Credenciais para teste:</strong><br>
+            <strong>Admin:</strong> admin@mef.com | 123<br>
+            <strong>Usuário:</strong> Cadastre um novo usuário
+        </div>
         
         <?php if (isset($_SESSION['mensagem'])): ?>
           <div class="alert alert-success fade-in-up">

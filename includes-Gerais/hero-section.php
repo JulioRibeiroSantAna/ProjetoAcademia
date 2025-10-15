@@ -1,13 +1,17 @@
 <?php
 // includes-Gerais/hero-section.php
+
+// Inicia a sessão se ainda não estiver iniciada
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+// Inclui o arquivo de configuração se a constante BASE_URL não estiver definida
 if (!defined('BASE_URL')) {
     require_once __DIR__ . '/../config.php';
 }
 
+// Valores padrão da seção hero
 $titulo_principal = "PREPARE-SE PARA MUDAR";
 $subtitulo = "PARA MELHOR.";
 $botao_principal_texto = "Entrar na Plataforma";
@@ -15,16 +19,28 @@ $botao_principal_url = BASE_URL . "/Autenticacao/login.php";
 $botao_secundario_texto = "Saiba Mais";
 $botao_secundario_url = "#sobre";
 
+// Verifica se o usuário está logado
 if (isset($_SESSION['tipo_usuario']) && $_SESSION['tipo_usuario'] !== '') {
+
+    // Definir nome para exibição (prioriza apelido)
+    $nome_usuario = '';
+
+    if (isset($_SESSION['apelido_usuario']) && !empty(trim($_SESSION['apelido_usuario']))) {
+        $nome_usuario = $_SESSION['apelido_usuario'];
+    } elseif (isset($_SESSION['nome_usuario']) && !empty(trim($_SESSION['nome_usuario']))) {
+        $nome_usuario = $_SESSION['nome_usuario'];
+    }
+
+    // Personaliza os textos conforme o tipo de usuário
     if ($_SESSION['tipo_usuario'] === 'admin') {
-        $titulo_principal = "Bem-vindo(a) ao MEF";
+        $titulo_principal = "Bem-vindo(a), " . htmlspecialchars($nome_usuario);
         $subtitulo = "Área do Administrador";
         $botao_principal_texto = "Agendar Consulta";
         $botao_principal_url = BASE_URL . "/AdmLogado/agendamento-Adm.php";
         $botao_secundario_texto = "Bate-Papo";
         $botao_secundario_url = BASE_URL . "/AdmLogado/bate-papo-Adm.php";
-    } else if ($_SESSION['tipo_usuario'] === 'usuario') {
-        $titulo_principal = "Bem-vindo(a) ao MEF";
+    } elseif ($_SESSION['tipo_usuario'] === 'usuario') {
+        $titulo_principal = "Bem-vindo(a), " . htmlspecialchars($nome_usuario);
         $subtitulo = "Área do Usuário";
         $botao_principal_texto = "Agendar Consulta";
         $botao_principal_url = BASE_URL . "/UsuarioLogado/agendamento.php";
@@ -41,8 +57,12 @@ if (isset($_SESSION['tipo_usuario']) && $_SESSION['tipo_usuario'] !== '') {
             <h1><?php echo htmlspecialchars($titulo_principal); ?></h1>
             <h2><?php echo htmlspecialchars($subtitulo); ?></h2>
             <div class="hero-buttons">
-                <a href="<?php echo htmlspecialchars($botao_principal_url); ?>" class="btn mef-btn-primary btn-lg"><?php echo htmlspecialchars($botao_principal_texto); ?></a>
-                <a href="<?php echo htmlspecialchars($botao_secundario_url); ?>" class="btn btn-outline-light btn-lg"><?php echo htmlspecialchars($botao_secundario_texto); ?></a>
+                <a href="<?php echo htmlspecialchars($botao_principal_url); ?>" class="btn mef-btn-primary btn-lg">
+                    <?php echo htmlspecialchars($botao_principal_texto); ?>
+                </a>
+                <a href="<?php echo htmlspecialchars($botao_secundario_url); ?>" class="btn btn-outline-light btn-lg">
+                    <?php echo htmlspecialchars($botao_secundario_texto); ?>
+                </a>
             </div>
         </div>
     </div>

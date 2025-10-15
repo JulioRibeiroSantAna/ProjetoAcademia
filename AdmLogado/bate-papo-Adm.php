@@ -2,7 +2,6 @@
 // AdmLogado/bate-papo-Adm.php
 require_once '../config.php';
 
-// Verificar se o usuário é admin de verdade
 if (!isset($_SESSION['tipo_usuario']) || $_SESSION['tipo_usuario'] !== 'admin') {
     header('Location: ../Autenticacao/login.php');
     exit();

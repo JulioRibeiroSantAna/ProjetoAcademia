@@ -4,83 +4,127 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Verificar se é admin
+require_once __DIR__ . '/../db_connection.php';
+
 $is_admin = (isset($_SESSION['tipo_usuario']) && $_SESSION['tipo_usuario'] === 'admin');
+$id_usuario = $_SESSION['id_usuario'] ?? null;
+$msg = '';
+
+// Verificar se usuário está logado
+if (!$id_usuario) {
+    header('Location: ../Autenticacao/login.php');
+    exit();
+}
+
+// Se enviou o formulário
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $profissional = $_POST['profissional'] ?? '';
+    $data = $_POST['data'] ?? '';
+    $hora = $_POST['hora'] ?? '';
+    
+    if ($profissional && $data && $hora) {
+        $data_completa = $data . ' ' . $hora . ':00';
+        
+        try {
+            // Verificar se horário está livre
+            $stmt = $pdo->prepare("SELECT COUNT(*) FROM agendamentos WHERE id_nutricionista = ? AND data_hora = ?");
+            $stmt->execute([$profissional, $data_completa]);
+            
+            if ($stmt->fetchColumn() == 0) {
+                // Salvar agendamento
+                $stmt = $pdo->prepare("INSERT INTO agendamentos (id_nutricionista, id_usuario, data_hora) VALUES (?, ?, ?)");
+                if ($stmt->execute([$profissional, $id_usuario, $data_completa])) {
+                    $msg = 'Consulta agendada com sucesso!';
+                } else {
+                    $msg = 'Erro ao agendar consulta!';
+                }
+            } else {
+                $msg = 'Horário já ocupado! Escolha outro horário.';
+            }
+        } catch (PDOException $e) {
+            $msg = 'Erro no sistema. Tente novamente.';
+            error_log("Erro agendamento: " . $e->getMessage());
+        }
+    } else {
+        $msg = 'Preencha todos os campos!';
+    }
+}
+
+// Buscar profissionais disponíveis
+try {
+    $stmt = $pdo->query("SELECT * FROM profissionais ORDER BY nome");
+    $profissionais = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    $profissionais = [];
+}
+
+// Buscar dados do usuário
+$usuario = [];
+try {
+    $stmt = $pdo->prepare("SELECT nome, email, telefone FROM usuarios WHERE id_usuario = ?");
+    $stmt->execute([$id_usuario]);
+    $usuario = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
+} catch (PDOException $e) {
+    $usuario = [];
+}
 ?>
 
 <div class="mef-card">
     <h1 class="text-center mb-4">AGENDAMENTO</h1>
-    <p class="text-center lead mb-4">
-        <strong>Preencha os campos para Agendar</strong>
-    </p>
+    <p class="text-center lead mb-4">Preencha os campos para Agendar sua Consulta</p>
     
-    <form id="formAgendamento">
-        <div class="mb-4">
-            <h3 class="border-bottom pb-2 mb-3">Dados Pessoais</h3>
-            <div class="mb-3">
-                <label for="nome" class="mef-form-label">Nome Completo</label>
-                <input type="text" class="form-control mef-form-control" id="nome" required>
-            </div>
-            <div class="mb-3">
-                <label for="email" class="mef-form-label">E-mail</label>
-                <input type="email" class="form-control mef-form-control" id="email" required>
-            </div>
-            <div class="mb-3">
-                <label for="telefone" class="mef-form-label">Telefone</label>
-                <input type="tel" class="form-control mef-form-control" id="telefone" required>
-            </div>
+    <?php if ($msg): ?>
+        <div class="alert alert-<?php echo strpos($msg, 'sucesso') !== false ? 'success' : 'danger'; ?>">
+            <?php echo htmlspecialchars($msg); ?>
+        </div>
+    <?php endif; ?>
+    
+    <form method="POST">
+        <!-- Dados do usuário -->
+        <h3 class="mb-3">Seus Dados</h3>
+        <div class="mb-3">
+            <label class="form-label">Nome</label>
+            <input type="text" class="form-control" value="<?php echo htmlspecialchars($usuario['nome'] ?? ''); ?>" readonly>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">E-mail</label>
+            <input type="email" class="form-control" value="<?php echo htmlspecialchars($usuario['email'] ?? ''); ?>" readonly>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Telefone</label>
+            <input type="tel" class="form-control" value="<?php echo htmlspecialchars($usuario['telefone'] ?? ''); ?>" readonly>
         </div>
         
-        <div class="mb-4">
-            <h3 class="border-bottom pb-2 mb-3">Agendamento</h3>
-            <div class="mb-3">
-                <label for="profissional" class="mef-form-label">Profissional</label>
-                <select class="form-select mef-form-control" id="profissional" required>
-                    <option value="" selected disabled>Selecione um profissional</option>
-                    <option value="Dr. Gabriel">Dr. Gabriel - Nutricionista</option>
-                    <option value="Dra. Ana">Dra. Ana - Nutricionista</option>
-                    <option value="Dr. Carlos">Dr. Carlos - Psicólogo</option>
-                    <?php if ($is_admin): ?>
-                    <option value="Dr. Silva">Dr. Silva - Administrador</option>
-                    <?php endif; ?>
-                </select>
-            </div>
-            <div class="mb-3">
-                <label for="data" class="mef-form-label">Data</label>
-                <select class="form-select mef-form-control" id="data" required>
-                    <option value="" selected disabled>Selecione uma data</option>
-                    <option value="2023-06-15">15/06/2023</option>
-                    <option value="2023-06-20">20/06/2023</option>
-                    <?php if ($is_admin): ?>
-                    <option value="2023-06-25">25/06/2023 (Exclusivo Admin)</option>
-                    <?php endif; ?>
-                </select>
-            </div>
-            <div class="mb-3">
-                <label for="hora" class="mef-form-label">Hora</label>
-                <select class="form-select mef-form-control" id="hora" required>
-                    <option value="" selected disabled>Selecione um horário</option>
-                    <option value="10:00">10:00</option>
-                    <option value="14:00">14:00</option>
-                    <?php if ($is_admin): ?>
-                    <option value="16:00">16:00 (Exclusivo Admin)</option>
-                    <?php endif; ?>
-                </select>
-            </div>
+        <!-- Agendamento -->
+        <h3 class="mb-3">Agendamento</h3>
+        <div class="mb-3">
+            <label class="form-label">Profissional</label>
+            <select class="form-select" name="profissional" required>
+                <option value="">Escolha um profissional</option>
+                <?php foreach ($profissionais as $prof): ?>
+                    <option value="<?php echo $prof['id']; ?>">
+                        <?php echo htmlspecialchars($prof['nome']); ?> - <?php echo htmlspecialchars($prof['especialidade']); ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Data</label>
+            <input type="date" class="form-control" name="data" min="<?php echo date('Y-m-d'); ?>" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Horário</label>
+            <select class="form-select" name="hora" required>
+                <option value="">Escolha um horário</option>
+                <option value="08:00">08:00</option>
+                <option value="09:00">09:00</option>
+                <option value="10:00">10:00</option>
+                <option value="14:00">14:00</option>
+                <option value="15:00">15:00</option>
+                <option value="16:00">16:00</option>
+            </select>
         </div>
         
-        <button type="submit" class="btn btn-save w-100">AGENDAR CONSULTA</button>
+        <button type="submit" class="btn mef-btn-primary w-100">AGENDAR CONSULTA</button>
     </form>
 </div>
-
-<script>
-document.getElementById('formAgendamento').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    <?php if ($is_admin): ?>
-    alert('Consulta agendada com sucesso! (Modo Administrador)');
-    <?php else: ?>
-    alert('Consulta agendada com sucesso!');
-    <?php endif; ?>
-});
-</script>

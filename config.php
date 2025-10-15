@@ -43,6 +43,15 @@ if (!isset($_SESSION['tipo_usuario'])) {
 if (!isset($_SESSION['nome_usuario'])) {
     $_SESSION['nome_usuario'] = 'Usuário';
 }
+if (!isset($_SESSION['apelido_usuario'])) {
+    $_SESSION['apelido_usuario'] = '';
+}
+if (!isset($_SESSION['email_usuario'])) {
+    $_SESSION['email_usuario'] = '';
+}
+if (!isset($_SESSION['telefone_usuario'])) {
+    $_SESSION['telefone_usuario'] = '';
+}
 if (!isset($_SESSION['login_attempts'])) {
     $_SESSION['login_attempts'] = 0;
 }

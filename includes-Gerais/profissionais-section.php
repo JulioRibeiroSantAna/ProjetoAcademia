@@ -8,6 +8,8 @@ if (!defined('BASE_URL')) {
     require_once __DIR__ . '/../config.php';
 }
 
+require_once __DIR__ . '/../db_connection.php';
+
 $url_agendamento = BASE_URL . "/Autenticacao/login.php";
 $texto_botao = "Conhecer";
 $texto_descricao = "Cada corpo é diferente, por isso nos certificamos de que você possa escolher um plano que funcione melhor para você.";
@@ -27,6 +29,14 @@ $url_com_parametro = $url_agendamento;
 if (!isset($_SESSION['tipo_usuario']) || $_SESSION['tipo_usuario'] === '') {
     $url_com_parametro .= '?from=profissionais';
 }
+
+// Buscar profissionais do banco
+try {
+    $stmt = $pdo->query("SELECT * FROM profissionais ORDER BY nome LIMIT 4");
+    $profissionais = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    $profissionais = [];
+}
 ?>
 
 <!-- Profissionais -->
@@ -37,61 +47,25 @@ if (!isset($_SESSION['tipo_usuario']) || $_SESSION['tipo_usuario'] === '') {
             <p class="text-center lead mb-5 fade-in-up"><?php echo htmlspecialchars($texto_descricao); ?></p>
 
             <div class="symmetric-grid">
-                <!-- Profissional 1 -->
-                <div class="scale-in">
-                    <div class="professional-card">
-                        <div class="professional-image-container">
-                            <img src="../imagens-teste/goku.jpg" class="card-img-top" alt="Nutricionista Esportivo">
-                        </div>
-                        <div class="card-body">
-                            <h5 class="card-title">Gabriel da Vila</h5>
-                            <p class="card-text text-muted">Nutricionista Esportivo com especialização em alimentação funcional e performance atlética.</p>
-                            <a href="<?php echo htmlspecialchars($url_com_parametro); ?>" class="btn mef-btn-primary"><?php echo htmlspecialchars($texto_botao); ?></a>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Profissional 2 -->
-                <div class="scale-in">
-                    <div class="professional-card">
-                        <div class="professional-image-container">
-                            <img src="../imagens-teste/goku.jpg" class="card-img-top" alt="Personal Trainer">
-                        </div>
-                        <div class="card-body">
-                            <h5 class="card-title">Gustavo Silva</h5>
-                            <p class="card-text text-muted">Personal Trainer especializado em treinamento funcional e reabilitação física.</p>
-                            <a href="<?php echo htmlspecialchars($url_com_parametro); ?>" class="btn mef-btn-primary"><?php echo htmlspecialchars($texto_botao); ?></a>
+                <?php if (!empty($profissionais)): ?>
+                    <?php foreach ($profissionais as $profissional): ?>
+                    <div class="scale-in">
+                        <div class="professional-card">
+                            <div class="professional-image-container">
+                                <img src="<?php echo $profissional['foto'] ? $profissional['foto'] : 'imagens-teste/goku.jpg'; ?>" 
+                                     class="card-img-top" alt="<?php echo htmlspecialchars($profissional['nome']); ?>">
+                            </div>
+                            <div class="card-body">
+                                <h5 class="card-title"><?php echo htmlspecialchars($profissional['nome']); ?></h5>
+                                <p class="card-text text-muted"><?php echo htmlspecialchars($profissional['descricao']); ?></p>
+                                <a href="<?php echo htmlspecialchars($url_com_parametro); ?>" class="btn mef-btn-primary">
+                                    <?php echo htmlspecialchars($texto_botao); ?>
+                                </a>
+                            </div>
                         </div>
                     </div>
-                </div>
-                
-                <!-- Profissional 3 -->
-                <div class="scale-in">
-                    <div class="professional-card">
-                        <div class="professional-image-container">
-                            <img src="../imagens-teste/goku.jpg" class="card-img-top" alt="Endocrinologista">
-                        </div>
-                        <div class="card-body">
-                            <h5 class="card-title">Julio Ribeiro</h5>
-                            <p class="card-text text-muted">Endocrinologista com foco em hormonios, metabolismo e saúde integral.</p>
-                            <a href="<?php echo htmlspecialchars($url_com_parametro); ?>" class="btn mef-btn-primary"><?php echo htmlspecialchars($texto_botao); ?></a>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Profissional 4 -->
-                <div class="scale-in">
-                    <div class="professional-card">
-                        <div class="professional-image-container">
-                            <img src="../imagens-teste/goku.jpg" class="card-img-top" alt="Psicólogo">
-                        </div>
-                        <div class="card-body">
-                            <h5 class="card-title">Miqueias</h5>
-                            <p class="card-text text-muted">Psicólogo especializado em saúde mental e desenvolvimento pessoal.</p>
-                            <a href="<?php echo htmlspecialchars($url_com_parametro); ?>" class="btn mef-btn-primary"><?php echo htmlspecialchars($texto_botao); ?></a>
-                        </div>
-                    </div>
-                </div>
+                    <?php endforeach; ?>
+                <?php endif; ?>
             </div>
         </div>
     </div>
