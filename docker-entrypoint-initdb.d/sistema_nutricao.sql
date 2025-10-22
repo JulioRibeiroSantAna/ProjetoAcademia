@@ -24,11 +24,13 @@ CREATE TABLE `usuarios` (
   `telefone` varchar(20) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Estrutura SIMPLIFICADA para tabela `profissionais`
+-- Estrutura SIMPLIFICADA para tabela `profissionais` (sem login)
 CREATE TABLE `profissionais` (
   `id` int NOT NULL,
   `nome` varchar(100) NOT NULL,
   `especialidade` varchar(100) NOT NULL,
+  `email` varchar(150) DEFAULT NULL,
+  `telefone` varchar(20) DEFAULT NULL,
   `descricao` text NOT NULL,
   `foto` varchar(255) DEFAULT NULL,
   `created_at` timestamp DEFAULT CURRENT_TIMESTAMP
@@ -42,22 +44,14 @@ CREATE TABLE `agendamentos` (
   `data_hora` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Estrutura para tabela `mensagens`
-CREATE TABLE `mensagens` (
-  `id_mensagem` int NOT NULL,
-  `id_usuario` int NOT NULL,
-  `id_nutricionista` int NOT NULL,
-  `conteudo` text NOT NULL,
-  `data_envio` datetime DEFAULT CURRENT_TIMESTAMP,
-  `editada` tinyint(1) DEFAULT '0'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
 -- Estrutura para tabela `videos`
 CREATE TABLE `videos` (
   `id_video` int NOT NULL,
   `titulo` varchar(200) NOT NULL,
   `descricao` text NOT NULL,
   `url` varchar(255) NOT NULL,
+  `arquivo_video` varchar(255) DEFAULT NULL,
+  `tipo_video` enum('url','arquivo') DEFAULT 'url',
   `data_upload` datetime DEFAULT CURRENT_TIMESTAMP,
   `id_nutricionista` int DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -78,7 +72,6 @@ CREATE TABLE `videos_topicos` (
 ALTER TABLE `usuarios` ADD PRIMARY KEY (`id_usuario`), ADD UNIQUE KEY `email` (`email`);
 ALTER TABLE `profissionais` ADD PRIMARY KEY (`id`);
 ALTER TABLE `agendamentos` ADD PRIMARY KEY (`id_agendamento`), ADD KEY `id_nutricionista` (`id_nutricionista`), ADD KEY `id_usuario` (`id_usuario`);
-ALTER TABLE `mensagens` ADD PRIMARY KEY (`id_mensagem`), ADD KEY `id_usuario` (`id_usuario`), ADD KEY `id_nutricionista` (`id_nutricionista`);
 ALTER TABLE `videos` ADD PRIMARY KEY (`id_video`);
 ALTER TABLE `topicos` ADD PRIMARY KEY (`id_topico`);
 ALTER TABLE `videos_topicos` ADD PRIMARY KEY (`videos_id`,`topicos_id`), ADD KEY `topicos_id` (`topicos_id`);
@@ -87,23 +80,19 @@ ALTER TABLE `videos_topicos` ADD PRIMARY KEY (`videos_id`,`topicos_id`), ADD KEY
 ALTER TABLE `usuarios` MODIFY `id_usuario` int NOT NULL AUTO_INCREMENT;
 ALTER TABLE `profissionais` MODIFY `id` int NOT NULL AUTO_INCREMENT;
 ALTER TABLE `agendamentos` MODIFY `id_agendamento` int NOT NULL AUTO_INCREMENT;
-ALTER TABLE `mensagens` MODIFY `id_mensagem` int NOT NULL AUTO_INCREMENT;
 ALTER TABLE `videos` MODIFY `id_video` int NOT NULL AUTO_INCREMENT;
 ALTER TABLE `topicos` MODIFY `id_topico` int NOT NULL AUTO_INCREMENT;
 
 -- Restrições para tabelas (SIMPLIFICADAS)
 ALTER TABLE `agendamentos` ADD CONSTRAINT `agendamentos_ibfk_2` FOREIGN KEY (`id_usuario`) REFERENCES `usuarios` (`id_usuario`);
-ALTER TABLE `mensagens` ADD CONSTRAINT `mensagens_ibfk_1` FOREIGN KEY (`id_usuario`) REFERENCES `usuarios` (`id_usuario`);
 ALTER TABLE `videos_topicos` ADD CONSTRAINT `videos_topicos_ibfk_1` FOREIGN KEY (`videos_id`) REFERENCES `videos` (`id_video`);
 ALTER TABLE `videos_topicos` ADD CONSTRAINT `videos_topicos_ibfk_2` FOREIGN KEY (`topicos_id`) REFERENCES `topicos` (`id_topico`);
 
--- INSERIR ADMIN COM SENHA EM TEXTO SIMPLES (será criptografada pelo PHP)
+-- INSERIR APENAS ADMIN - SEM PROFISSIONAL PRÉ-CADASTRADO
 INSERT INTO `usuarios` (`id_usuario`, `nome`, `apelido`, `email`, `senha`, `tipo`, `telefone`) VALUES
 (1, 'Administrador', 'Admin', 'admin@mef.com', '123', 'admin', '11999999999');
 
-INSERT INTO `profissionais` (`id`, `nome`, `especialidade`, `descricao`, `foto`) VALUES
-(1, 'Dr. Carlos Silva', 'Nutricionista', 'Especialista em nutrição esportiva com 10 anos de experiência.', 'uploads/default-prof.jpg');
-
+-- INSERIR APENAS TÓPICOS PADRÃO
 INSERT INTO `topicos` (`id_topico`, `nome`) VALUES
 (1, 'Receitas'),
 (2, 'Dicas'),
@@ -112,6 +101,6 @@ INSERT INTO `topicos` (`id_topico`, `nome`) VALUES
 
 COMMIT;
 
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;1 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;

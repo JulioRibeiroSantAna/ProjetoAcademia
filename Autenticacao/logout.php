@@ -1,14 +1,18 @@
 <?php
-// Autenticacao/logout.php
+/**
+ * ARQUIVO: logout.php
+ * Faz o logout do usuário e limpa a sessão
+ */
+
 require_once '../config.php';
 
-// Limpar todas as variáveis de sessão
+// Limpa todas as variáveis da sessão
 $_SESSION = array();
 
-// Destruir a sessão
+// Destroi a sessão no servidor
 session_destroy();
 
-// Redirecionar para a página inicial
+// Redireciona pro início
 header('Location: ../index.php');
 exit;
 ?>

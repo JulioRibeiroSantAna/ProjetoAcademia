@@ -1,3 +1,9 @@
+<!--
+ARQUIVO: sobre.php
+Seção "Sobre" que explica a plataforma MEF
+Texto fixo para todos os usuários
+-->
+
 <!-- Sobre -->
 <section id="sobre" class="section-spacing">
     <div class="container-symmetric">

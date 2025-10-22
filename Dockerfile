@@ -15,6 +15,13 @@ RUN apt-get update && apt-get install -y \
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg
 RUN docker-php-ext-install mysqli pdo pdo_mysql gd mbstring xml
 
+# Configura limites do PHP para uploads grandes
+RUN echo "upload_max_filesize = 100M" > /usr/local/etc/php/conf.d/uploads.ini \
+    && echo "post_max_size = 100M" >> /usr/local/etc/php/conf.d/uploads.ini \
+    && echo "memory_limit = 256M" >> /usr/local/etc/php/conf.d/uploads.ini \
+    && echo "max_execution_time = 300" >> /usr/local/etc/php/conf.d/uploads.ini \
+    && echo "output_buffering = 4096" >> /usr/local/etc/php/conf.d/uploads.ini
+
 # Habilita o mod_rewrite
 RUN a2enmod rewrite
 RUN a2enmod headers
@@ -40,7 +47,9 @@ WORKDIR /var/www/html
 # Ajusta permissões
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html \
-    && find /var/www/html -type f -exec chmod 644 {} \;
+    && find /var/www/html -type f -exec chmod 644 {} \; \
+    && mkdir -p /var/www/html/uploads/profissionais \
+    && chmod -R 777 /var/www/html/uploads
 
 # Expõe a porta padrão do Apache
 EXPOSE 80

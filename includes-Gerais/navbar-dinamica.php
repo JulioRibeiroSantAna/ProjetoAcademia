@@ -1,28 +1,80 @@
 <?php
-// includes-Gerais/navbar-dinamica.php
+/**
+ * ARQUIVO: navbar-dinamica.php
+ * LOCALIZAÇÃO: includes-Gerais/
+ * 
+ * PROPÓSITO:
+ * Esta é a barra de navegação (menu do topo) do site.
+ * O nome "dinâmica" significa que ela MUDA dependendo de quem está acessando.
+ * 
+ * 3 VERSÕES DA NAVBAR:
+ * 1. VISITANTE (não logado): Mostra links pro index + botão "Entrar"
+ * 2. USUÁRIO COMUM (logado): Mostra menu com Vídeos, Perfil, Agendamentos
+ * 3. ADMIN (logado): Mostra menu + opção "Gerenciar Profissionais"
+ * 
+ * COMO FUNCIONA:
+ * - Verifica $_SESSION['tipo_usuario']
+ * - Monta URLs diferentes pra cada tipo
+ * - Cria menu dropdown personalizado
+ * 
+ * TECNOLOGIAS:
+ * - PHP para lógica condicional
+ * - Bootstrap 5 para navbar responsiva
+ * - JavaScript para submenus
+ * 
+ * USADA EM:
+ * - TODAS as páginas do site (include no topo)
+ */
+
+/**
+ * VERIFICAÇÃO DE SESSÃO
+ * 
+ * Garante que a sessão está iniciada antes de tentar ler $_SESSION.
+ * session_status() retorna o estado atual da sessão.
+ * PHP_SESSION_NONE significa que a sessão NÃO foi iniciada ainda.
+ */
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Inclui o config.php se não estiver definido
+/**
+ * INCLUIR CONFIG.PHP SE NECESSÁRIO
+ * 
+ * A constante BASE_URL é definida no config.php.
+ * Se ela não existe, significa que config.php não foi incluído.
+ * Nesse caso, incluímos aqui.
+ * 
+ * __DIR__ retorna o diretório atual (includes-Gerais)
+ * ../ volta um nível (pra raiz do projeto)
+ */
 if (!defined('BASE_URL')) {
     require_once __DIR__ . '/../config.php';
 }
 
-// Define URLs padrão para usuários não logados
+/**
+ * DEFINIR URLs PADRÃO (PARA VISITANTES)
+ * 
+ * Quando o usuário NÃO está logado, os links apontam pro index.php.
+ * As âncoras (#sobre, #profissionais) fazem scroll pra seção certa.
+ * 
+ * EXEMPLO:
+ * Visitante clica em "Sobre" → vai pra index.php#sobre → scroll até a seção
+ */
 $url_inicio = BASE_URL . "/index.php";
 $url_sobre = BASE_URL . "/index.php#sobre";
 $url_profissionais = BASE_URL . "/index.php#profissionais";
 $url_fale_conosco = BASE_URL . "/index.php#footer";
 
-// Verifica se o usuário está logado e ajustar as URLs
+// Ajusta URLs se o usuário estiver logado
 if (isset($_SESSION['tipo_usuario']) && $_SESSION['tipo_usuario'] !== '') {
     if ($_SESSION['tipo_usuario'] === 'admin') {
+        // Admin: usa páginas da pasta AdmLogado
         $url_inicio = BASE_URL . "/AdmLogado/logado-Adm.php";
         $url_sobre = BASE_URL . "/AdmLogado/logado-Adm.php#sobre";
         $url_profissionais = BASE_URL . "/AdmLogado/logado-Adm.php#profissionais";
         $url_fale_conosco = BASE_URL . "/AdmLogado/logado-Adm.php#footer";
     } else if ($_SESSION['tipo_usuario'] === 'usuario') {
+        // Usuário comum: usa páginas da pasta UsuarioLogado
         $url_inicio = BASE_URL . "/UsuarioLogado/logado.php";
         $url_sobre = BASE_URL . "/UsuarioLogado/logado.php#sobre";
         $url_profissionais = BASE_URL . "/UsuarioLogado/logado.php#profissionais";
@@ -45,14 +97,12 @@ if (isset($_SESSION['tipo_usuario']) && $_SESSION['tipo_usuario'] !== '') {
         $url_editar_perfil = BASE_URL . "/AdmLogado/editar-perfil-Adm.php";
         $url_videos_apoio = BASE_URL . "/AdmLogado/videos-apoio-Adm.php";
         $url_agendamento = BASE_URL . "/AdmLogado/agendamento-Adm.php";
-        $url_bate_papo = BASE_URL . "/AdmLogado/bate-papo-Adm.php";
     } else if ($_SESSION['tipo_usuario'] === 'usuario') {
         $url_meus_agendamentos = BASE_URL . "/UsuarioLogado/meus-agendamentos.php";
         $url_perfil = BASE_URL . "/UsuarioLogado/perfil.php";
         $url_editar_perfil = BASE_URL . "/UsuarioLogado/editar-perfil.php";
         $url_videos_apoio = BASE_URL . "/UsuarioLogado/videos-apoio.php";
         $url_agendamento = BASE_URL . "/UsuarioLogado/agendamento.php";
-        $url_bate_papo = BASE_URL . "/UsuarioLogado/bate-papo.php";
     }
 }
 
@@ -66,8 +116,8 @@ if (isset($_SESSION['tipo_usuario']) && $_SESSION['tipo_usuario'] !== '') {
         <li class="dropdown-submenu">
             <a class="dropdown-item dropdown-toggle" href="#">Profissionais</a>
             <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="' . BASE_URL . '/AdmLogado/profissionais-Adm.php">Gerenciar Profissionais</a></li>
                 <li><a class="dropdown-item" href="' . $url_agendamento . '">Agendar Consulta</a></li>
-                <li><a class="dropdown-item" href="' . $url_bate_papo . '">Bate-Papo / Gerenciamento</a></li>
                 <li><a class="dropdown-item" href="' . $url_meus_agendamentos . '">Meus Agendamentos</a></li>
             </ul>
         </li>';
@@ -88,7 +138,6 @@ if (isset($_SESSION['tipo_usuario']) && $_SESSION['tipo_usuario'] !== '') {
             <a class="dropdown-item dropdown-toggle" href="#">Profissionais</a>
             <ul class="dropdown-menu">
                 <li><a class="dropdown-item" href="' . $url_agendamento . '">Agendar Consulta</a></li>
-                <li><a class="dropdown-item" href="' . $url_bate_papo . '">Bate-Papo</a></li>
                 <li><a class="dropdown-item" href="' . $url_meus_agendamentos . '">Meus Agendamentos</a></li>
             </ul>
         </li>';

@@ -1,5 +1,12 @@
 <?php
-// includes-Gerais/meus-agendamentos-dinamico.php
+/**
+ * ARQUIVO: meus-agendamentos-dinamico.php
+ * Lista agendamentos do usuário
+ * Admin vê TODOS os agendamentos
+ * Usuário vê apenas os seus
+ * Permite editar data/hora e excluir
+ */
+
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -10,17 +17,20 @@ $is_admin = (isset($_SESSION['tipo_usuario']) && $_SESSION['tipo_usuario'] === '
 $id_usuario = $_SESSION['id_usuario'] ?? null;
 $msg = '';
 
-// Processar ações
+// Processa ações: excluir ou editar
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $acao = $_POST['acao'] ?? '';
     
+    // Ação: Excluir agendamento
     if ($acao === 'excluir') {
         $id_agendamento = $_POST['id_agendamento'] ?? 0;
         try {
             if ($is_admin) {
+                // Admin pode excluir qualquer agendamento
                 $stmt = $pdo->prepare("DELETE FROM agendamentos WHERE id_agendamento = ?");
                 $stmt->execute([$id_agendamento]);
             } else {
+                // Usuário só pode excluir os próprios
                 $stmt = $pdo->prepare("DELETE FROM agendamentos WHERE id_agendamento = ? AND id_usuario = ?");
                 $stmt->execute([$id_agendamento, $id_usuario]);
             }
@@ -30,6 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
     
+    // Ação: Editar data/hora do agendamento
     if ($acao === 'editar') {
         $id_agendamento = $_POST['id_agendamento'] ?? 0;
         $nova_data = $_POST['nova_data'] ?? '';
@@ -40,9 +51,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             try {
                 if ($is_admin) {
+                    // Admin pode editar qualquer
                     $stmt = $pdo->prepare("UPDATE agendamentos SET data_hora = ? WHERE id_agendamento = ?");
                     $stmt->execute([$nova_data_hora, $id_agendamento]);
                 } else {
+                    // Usuário só pode editar os próprios
                     $stmt = $pdo->prepare("UPDATE agendamentos SET data_hora = ? WHERE id_agendamento = ? AND id_usuario = ?");
                     $stmt->execute([$nova_data_hora, $id_agendamento, $id_usuario]);
                 }

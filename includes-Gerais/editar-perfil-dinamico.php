@@ -1,5 +1,11 @@
 <?php
-// includes-Gerais/editar-perfil-dinamico.php
+/**
+ * ARQUIVO: editar-perfil-dinamico.php
+ * Formulário para editar dados do perfil
+ * Permite alterar: nome, apelido, email, telefone, senha
+ * Funciona para admin e usuário comum
+ */
+
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -10,43 +16,45 @@ $is_admin = ($_SESSION['tipo_usuario'] === 'admin');
 $id_usuario = $_SESSION['id_usuario'];
 $msg = '';
 
-// Buscar dados do usuário
+// Busca dados atuais do banco
 $stmt = $pdo->prepare('SELECT nome, apelido, email, telefone FROM usuarios WHERE id_usuario = ?');
 $stmt->execute([$id_usuario]);
 $user = $stmt->fetch();
 
-// Se enviou formulário
+// Processa formulário quando enviado
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nome = trim($_POST['nome']);
     $apelido = trim($_POST['apelido']);
     $email = trim($_POST['email']);
     $telefone = trim($_POST['telefone']);
-    $senha = $_POST['senha'];
+    $senha = $_POST['senha']; // Senha é opcional
     
     $erros = [];
     
-    // Validações simples
+    // Valida campos
     if (strlen($nome) < 2) $erros[] = 'Nome muito curto';
     if (strlen($apelido) < 2) $erros[] = 'Apelido muito curto';
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) $erros[] = 'E-mail inválido';
     if ($senha && strlen($senha) < 3) $erros[] = 'Senha muito curta';
     
-    // Verificar e-mail único
+    // Verifica se email já está em uso por outro usuário
     $stmt = $pdo->prepare('SELECT id_usuario FROM usuarios WHERE email = ? AND id_usuario != ?');
     $stmt->execute([$email, $id_usuario]);
     if ($stmt->fetch()) $erros[] = 'E-mail já usado por outro usuário';
 
     if (empty($erros)) {
-        // Atualizar dados
+        // Atualiza no banco
         if ($senha) {
+            // Se digitou senha, atualiza ela também (criptografada)
             $stmt = $pdo->prepare('UPDATE usuarios SET nome = ?, apelido = ?, email = ?, telefone = ?, senha = ? WHERE id_usuario = ?');
             $stmt->execute([$nome, $apelido, $email, $telefone, password_hash($senha, PASSWORD_DEFAULT), $id_usuario]);
         } else {
+            // Se não digitou senha, mantém a antiga
             $stmt = $pdo->prepare('UPDATE usuarios SET nome = ?, apelido = ?, email = ?, telefone = ? WHERE id_usuario = ?');
             $stmt->execute([$nome, $apelido, $email, $telefone, $id_usuario]);
         }
         
-        // Atualizar sessão
+        // Atualiza sessão com novos dados
         $_SESSION['nome_usuario'] = $nome;
         $_SESSION['apelido_usuario'] = $apelido;
         $_SESSION['email_usuario'] = $email;

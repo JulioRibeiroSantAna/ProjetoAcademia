@@ -1,52 +1,62 @@
 <?php
-// Autenticacao/cadastro.php
+/**
+ * ARQUIVO: cadastro.php
+ * Página de cadastro de novos usuários
+ */
+
 require_once '../config.php';
 require_once 'validacao.php';
 require_once '../db_connection.php';
 
-// Processar cadastro se for submetido
+// Processa o cadastro quando o formulário é enviado
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Sanitizar entradas
+    
+    // Limpa os dados do formulário
     $dados = sanitizarEntrada($_POST);
-  $nome = $dados['name'] ?? '';
-  $apelido = $dados['apelido'] ?? '';
-  $email = $dados['email'] ?? '';
-  $senha = $dados['password'] ?? '';
-  $confirmSenha = $dados['confirmPassword'] ?? '';
-  $telefone = $dados['telefone'] ?? '';
-  $tipo = 'usuario'; // Cadastro padrão é usuário comum
+    $nome = $dados['name'] ?? '';
+    $apelido = $dados['apelido'] ?? '';
+    $email = $dados['email'] ?? '';
+    $senha = $dados['password'] ?? '';
+    $confirmSenha = $dados['confirmPassword'] ?? '';
+    $telefone = $dados['telefone'] ?? '';
+    $tipo = 'usuario'; // Novos cadastros são sempre usuário comum
 
-    // Validar dados
-  $erros = validarCadastro($nome, $apelido, $email, $senha, $confirmSenha, $telefone);
+    // Valida todos os campos
+    $erros = validarCadastro($nome, $apelido, $email, $senha, $confirmSenha, $telefone);
     
     if (empty($erros)) {
-        // Verificar se o e-mail já existe
-    try {
-      $stmt = $pdo->prepare('SELECT id_usuario FROM usuarios WHERE email = ?');
-      $stmt->execute([$email]);
-      if ($stmt->fetch()) {
-        $_SESSION['mensagem'] = 'E-mail já cadastrado!';
-        $_SESSION['tipo_mensagem'] = 'erro';
-      } else {
-        // Inserir novo usuário
-        $hash = password_hash($senha, PASSWORD_DEFAULT);
-        $stmt = $pdo->prepare('INSERT INTO usuarios (nome, apelido, email, senha, tipo, telefone) VALUES (?, ?, ?, ?, ?, ?)');
-        if ($stmt->execute([$nome, $apelido, $email, $hash, $tipo, $telefone])) {
-          $_SESSION['mensagem'] = 'Cadastro realizado com sucesso! Faça login.';
-          $_SESSION['tipo_mensagem'] = 'sucesso';
-          header('Location: login.php');
-          exit;
-        } else {
-          $_SESSION['mensagem'] = 'Erro ao cadastrar usuário!';
-          $_SESSION['tipo_mensagem'] = 'erro';
+        try {
+            // Verifica se o email já existe
+            $stmt = $pdo->prepare('SELECT id_usuario FROM usuarios WHERE email = ?');
+            $stmt->execute([$email]);
+            
+            if ($stmt->fetch()) {
+                $_SESSION['mensagem'] = 'E-mail já cadastrado!';
+                $_SESSION['tipo_mensagem'] = 'erro';
+            } else {
+                // Criptografa a senha
+                $hash = password_hash($senha, PASSWORD_DEFAULT);
+                
+                // Insere novo usuário no banco
+                $stmt = $pdo->prepare('INSERT INTO usuarios (nome, apelido, email, senha, tipo, telefone) VALUES (?, ?, ?, ?, ?, ?)');
+                
+                if ($stmt->execute([$nome, $apelido, $email, $hash, $tipo, $telefone])) {
+                    $_SESSION['mensagem'] = 'Cadastro realizado com sucesso! Faça login.';
+                    $_SESSION['tipo_mensagem'] = 'sucesso';
+                    header('Location: login.php');
+                    exit;
+                } else {
+                    $_SESSION['mensagem'] = 'Erro ao cadastrar usuário!';
+                    $_SESSION['tipo_mensagem'] = 'erro';
+                }
+            }
+        } catch (PDOException $e) {
+            $_SESSION['mensagem'] = 'Erro no servidor. Tente novamente.';
+            $_SESSION['tipo_mensagem'] = 'erro';
+            error_log("Erro cadastro: " . $e->getMessage());
         }
-      }
-    } catch (PDOException $e) {
-      $_SESSION['mensagem'] = 'Erro no servidor. Tente novamente.';
-      $_SESSION['tipo_mensagem'] = 'erro';
-      error_log("Erro cadastro: " . $e->getMessage());
-    }
     } else {
+        // Se tem erros, junta todos com <br>
         $_SESSION['mensagem'] = implode('<br>', $erros);
         $_SESSION['tipo_mensagem'] = 'erro';
     }
@@ -62,7 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <link href="../bootstrap-5.0.2-dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../styles.css">
+  <link rel="stylesheet" href="../styles.css?v=<?php echo time(); ?>">
 </head>
 <body>
   <?php include '../includes-Gerais/navbar-dinamica.php'; ?>

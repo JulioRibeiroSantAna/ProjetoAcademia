@@ -1,0 +1,9 @@
+# Ignorar uploads de vídeos
+*.mp4
+*.avi
+*.mov
+*.wmv
+*.flv
+*.webm
+*.mkv
+!.gitkeep

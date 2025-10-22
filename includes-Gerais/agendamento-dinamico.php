@@ -1,5 +1,11 @@
 <?php
-// includes-Gerais/agendamento-dinamico.php
+/**
+ * ARQUIVO: agendamento-dinamico.php
+ * Sistema de agendamento de consultas
+ * Usuário escolhe: profissional, data e hora
+ * Verifica se horário está livre antes de agendar
+ */
+
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -10,28 +16,29 @@ $is_admin = (isset($_SESSION['tipo_usuario']) && $_SESSION['tipo_usuario'] === '
 $id_usuario = $_SESSION['id_usuario'] ?? null;
 $msg = '';
 
-// Verificar se usuário está logado
+// Só usuários logados podem agendar
 if (!$id_usuario) {
     header('Location: ../Autenticacao/login.php');
     exit();
 }
 
-// Se enviou o formulário
+// Processa formulário de agendamento
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $profissional = $_POST['profissional'] ?? '';
     $data = $_POST['data'] ?? '';
     $hora = $_POST['hora'] ?? '';
     
     if ($profissional && $data && $hora) {
+        // Junta data e hora: 2024-10-22 14:00:00
         $data_completa = $data . ' ' . $hora . ':00';
         
         try {
-            // Verificar se horário está livre
+            // Verifica se o horário já está ocupado
             $stmt = $pdo->prepare("SELECT COUNT(*) FROM agendamentos WHERE id_nutricionista = ? AND data_hora = ?");
             $stmt->execute([$profissional, $data_completa]);
             
             if ($stmt->fetchColumn() == 0) {
-                // Salvar agendamento
+                // Horário livre, salva agendamento
                 $stmt = $pdo->prepare("INSERT INTO agendamentos (id_nutricionista, id_usuario, data_hora) VALUES (?, ?, ?)");
                 if ($stmt->execute([$profissional, $id_usuario, $data_completa])) {
                     $msg = 'Consulta agendada com sucesso!';

@@ -1,8 +1,13 @@
 <?php
-// UsuarioLogado/editar-perfil.php
+/**
+ * ARQUIVO: editar-perfil.php
+ * Editar dados do perfil (nome, apelido, email, telefone)
+ * Usuário pode atualizar suas informações
+ */
+
 require_once '../config.php';
 
-// Verificar se o usuário está logado como usuário comum
+// Só usuário comum acessa
 if (!isset($_SESSION['tipo_usuario']) || $_SESSION['tipo_usuario'] !== 'usuario') {
     header('Location: ../Autenticacao/login.php');
     exit();
@@ -17,7 +22,7 @@ if (!isset($_SESSION['tipo_usuario']) || $_SESSION['tipo_usuario'] !== 'usuario'
   <link href="../bootstrap-5.0.2-dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../styles.css">
+  <link rel="stylesheet" href="../styles.css?v=<?php echo time(); ?>">
 </head>
 <body>
   <?php include '../includes-Gerais/navbar-dinamica.php'; ?>
