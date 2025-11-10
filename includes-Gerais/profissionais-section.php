@@ -78,18 +78,14 @@ try {
                                 <?php if (!empty($profissional['email'])): ?>
                                 <div class="prof-contact-item">
                                     <i class="bi bi-envelope"></i>
-                                    <a href="mailto:<?php echo htmlspecialchars($profissional['email']); ?>">
-                                        <?php echo htmlspecialchars($profissional['email']); ?>
-                                    </a>
+                                    <span><?php echo htmlspecialchars($profissional['email']); ?></span>
                                 </div>
                                 <?php endif; ?>
                                 
                                 <?php if (!empty($profissional['telefone'])): ?>
                                 <div class="prof-contact-item">
                                     <i class="bi bi-telephone"></i>
-                                    <a href="tel:<?php echo htmlspecialchars($profissional['telefone']); ?>">
-                                        <?php echo htmlspecialchars($profissional['telefone']); ?>
-                                    </a>
+                                    <span><?php echo htmlspecialchars($profissional['telefone']); ?></span>
                                 </div>
                                 <?php endif; ?>
                             </div>

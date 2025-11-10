@@ -442,36 +442,44 @@ try {
 
 <!-- CSS para tema escuro -->
 <style>
-/* ========== LAYOUT AMPLO ========== */
-.search-filter-section,
-.mef-card {
-    max-width: 100%;
-    width: 100%;
-    margin-left: 0 !important;
-    margin-right: 0 !important;
-    padding-left: 10px;
-    padding-right: 10px;
-}
-
-/* ========== BARRA DE PESQUISA MODERNA ========== */
+/* ========== BARRA DE PESQUISA ESTILO YOUTUBE ========== */
 .search-filter-section {
     background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-    padding: 35px 40px;
-    border-radius: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    padding: 20px 0;
+    border-radius: 0;
+    border: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-    max-width: 100%;
-    margin-bottom: 50px !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    width: 100vw !important;
+    min-width: 100vw !important;
+    max-width: 100vw !important;
+    margin: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    position: fixed;
+    top: 80px;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 999;
+    overflow: visible !important;
+    box-sizing: border-box;
+}
+
+.mef-card {
+    margin-top: 180px;
 }
 
 .search-filter-container {
     display: grid;
-    grid-template-columns: 1fr 280px 140px;
-    gap: 20px;
+    grid-template-columns: 1fr 240px 120px;
+    gap: 15px;
     align-items: center;
-    max-width: 1400px;
+    width: 100%;
+    max-width: 95%;
     margin: 0 auto;
+    padding: 0 2.5%;
+    overflow: visible !important;
 }
 
 /* Campo de Busca */
@@ -493,34 +501,32 @@ try {
 
 .search-input-modern {
     width: 100%;
-    background: rgba(255, 255, 255, 0.08) !important;
-    border: 2px solid rgba(255, 255, 255, 0.15) !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
     color: #ffffff !important;
-    padding: 18px 20px 18px 60px !important;
-    border-radius: 15px;
-    font-size: 1.1rem;
-    font-weight: 500;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    height: 60px;
-    letter-spacing: 0.3px;
+    padding: 12px 20px 12px 50px !important;
+    border-radius: 25px;
+    font-size: 1rem;
+    font-weight: 400;
+    transition: all 0.2s ease;
+    height: 48px;
 }
 
 .search-input-modern:focus {
-    background: rgba(255, 255, 255, 0.12) !important;
-    border-color: rgba(102, 126, 234, 0.6) !important;
-    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15) !important;
+    background: rgba(255, 255, 255, 0.15) !important;
+    border-color: rgba(102, 126, 234, 0.8) !important;
+    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2) !important;
     outline: none;
 }
 
 .search-input-modern:focus + .search-icon,
 .search-box-wrapper:hover .search-icon {
-    color: rgba(102, 126, 234, 0.9);
-    transform: translateY(-50%) scale(1.1);
+    color: rgba(102, 126, 234, 1);
 }
 
 .search-input-modern::placeholder {
-    color: rgba(255, 255, 255, 0.4);
-    font-size: 1.05rem;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.95rem;
 }
 
 /* Select de Filtro */
@@ -541,27 +547,26 @@ try {
 
 .filter-select-modern {
     width: 100%;
-    background: rgba(255, 255, 255, 0.08) !important;
-    border: 2px solid rgba(255, 255, 255, 0.15) !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
     color: #ffffff !important;
-    padding: 18px 20px 18px 55px !important;
-    border-radius: 15px;
-    font-size: 1.1rem;
-    font-weight: 500;
-    height: 60px;
+    padding: 12px 40px 12px 45px !important;
+    border-radius: 25px;
+    font-size: 0.95rem;
+    font-weight: 400;
+    height: 48px;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.2s ease;
     appearance: none;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ffffff' d='M6 9L1 4h10z'/%3E%3C/svg%3E") !important;
     background-repeat: no-repeat !important;
-    background-position: right 20px center !important;
-    letter-spacing: 0.3px;
+    background-position: right 15px center !important;
 }
 
 .filter-select-modern:focus {
-    background-color: rgba(255, 255, 255, 0.12) !important;
-    border-color: rgba(102, 126, 234, 0.6) !important;
-    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15) !important;
+    background-color: rgba(255, 255, 255, 0.15) !important;
+    border-color: rgba(102, 126, 234, 0.8) !important;
+    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2) !important;
     outline: none;
 }
 
@@ -576,8 +581,7 @@ try {
 }
 
 .filter-box-wrapper:hover .filter-icon {
-    color: rgba(102, 126, 234, 0.9);
-    transform: translateY(-50%) scale(1.1);
+    color: rgba(102, 126, 234, 1);
 }
 
 /* Botão de Busca */
@@ -586,28 +590,26 @@ try {
     border: none;
     color: #ffffff;
     padding: 18px 32px;
-    border-radius: 15px;
-    font-size: 1.1rem;
-    font-weight: 600;
+    border-radius: 25px;
+    font-size: 0.95rem;
+    font-weight: 500;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-    height: 60px;
+    transition: all 0.2s ease;
+    box-shadow: none;
+    height: 48px;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
-    letter-spacing: 0.5px;
+    gap: 8px;
 }
 
 .btn-search-modern:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
     background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
 }
 
 .btn-search-modern:active {
-    transform: translateY(0);
+    transform: scale(0.98);
 }
 
 /* Barra de Informações dos Filtros */

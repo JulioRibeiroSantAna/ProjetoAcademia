@@ -21,7 +21,8 @@ CREATE TABLE `usuarios` (
   `email` varchar(150) NOT NULL,
   `senha` varchar(255) NOT NULL,
   `tipo` enum('admin','usuario','nutricionista') NOT NULL,
-  `telefone` varchar(20) DEFAULT NULL
+  `telefone` varchar(20) DEFAULT NULL,
+  `foto` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Estrutura SIMPLIFICADA para tabela `profissionais` (sem login)
@@ -90,7 +91,7 @@ ALTER TABLE `videos_topicos` ADD CONSTRAINT `videos_topicos_ibfk_2` FOREIGN KEY 
 
 -- INSERIR APENAS ADMIN - SEM PROFISSIONAL PRÉ-CADASTRADO
 INSERT INTO `usuarios` (`id_usuario`, `nome`, `apelido`, `email`, `senha`, `tipo`, `telefone`) VALUES
-(1, 'Administrador', 'Admin', 'admin@mef.com', '123', 'admin', '11999999999');
+(1, 'Administrador', 'Admin', 'admin@mef.com', 'admin123', 'admin', '11999999999');
 
 -- INSERIR APENAS TÓPICOS PADRÃO
 INSERT INTO `topicos` (`id_topico`, `nome`) VALUES

@@ -11,20 +11,9 @@ Fixo em todas as páginas
                 <!-- Coluna Fale Conosco -->
                 <div class="text-center">
                     <h5 class="mb-4">FALE CONOSCO</h5>
-                    <div class="d-flex justify-content-center gap-3 mb-4">
-                        <a href="#" class="btn btn-dark rounded-circle p-3 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;" title="Instagram">
-                            <i class="bi bi-instagram fs-4"></i>
-                        </a>
-                        <a href="#" class="btn btn-dark rounded-circle p-3 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;" title="Facebook">
-                            <i class="bi bi-facebook fs-4"></i>
-                        </a>
-                        <a href="#" class="btn btn-dark rounded-circle p-3 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;" title="WhatsApp">
-                            <i class="bi bi-whatsapp fs-4"></i>
-                        </a>
-                    </div>
                     <p class="mb-2">
                         <i class="bi bi-envelope me-2"></i>
-                        <a href="mailto:contato@mef.com.br" class="text-white text-decoration-underline">contato@mef.com.br</a>
+                        <a href="https://mail.google.com/mail/?view=cm&fs=1&to=julioribeiro041@gmail.com" target="_blank" class="text-white text-decoration-underline">julioribeiro041@gmail.com</a>
                     </p>
                 </div>
                 

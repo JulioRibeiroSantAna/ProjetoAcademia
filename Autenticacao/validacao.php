@@ -15,9 +15,9 @@ function validarEmail($email) {
     return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
 }
 
-// Valida senha (mínimo 3 caracteres)
+// Valida senha (8 a 14 caracteres)
 function validarSenha($senha) {
-    return strlen($senha) >= 3;
+    return strlen($senha) >= 8 && strlen($senha) <= 14;
 }
 
 // Valida nome completo (2 a 100 caracteres)
@@ -51,7 +51,7 @@ function validarCadastro($nome, $apelido, $email, $senha, $confirmSenha, $telefo
     }
     
     if (!validarSenha($senha)) {
-        $erros[] = 'A senha deve ter pelo menos 3 caracteres.';
+        $erros[] = 'A senha deve ter entre 8 e 14 caracteres.';
     }
     
     if ($senha !== $confirmSenha) {

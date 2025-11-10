@@ -137,7 +137,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
               <div class="input-group">
                 <span class="input-group-text"><i class="bi bi-lock"></i></span>
                 <input type="password" class="form-control mef-form-control" id="password" name="password" 
-                       placeholder="Mínimo 3 caracteres" required>
+                       placeholder="8-14 caracteres" minlength="8" maxlength="14" required>
               </div>
             </div>
             <div class="col-md-6">
@@ -145,7 +145,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
               <div class="input-group">
                 <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
                 <input type="password" class="form-control mef-form-control" id="confirmPassword" name="confirmPassword" 
-                       placeholder="Repita a senha" required>
+                       placeholder="Repita a senha" minlength="8" maxlength="14" required>
               </div>
             </div>
           </div>

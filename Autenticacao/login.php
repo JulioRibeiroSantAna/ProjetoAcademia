@@ -27,7 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!validarEmail($email)) {
         $erro = 'E-mail inválido!';
     } elseif (!validarSenha($password)) {
-        $erro = 'Senha deve ter pelo menos 3 caracteres!';
+        $erro = 'Senha deve ter entre 8 e 14 caracteres!';
     } else {
         try {
             // Busca o usuário no banco
@@ -63,6 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $_SESSION['apelido_usuario'] = $usuario['apelido'];
                     $_SESSION['email_usuario'] = $usuario['email'];
                     $_SESSION['telefone_usuario'] = $usuario['telefone'];
+                    $_SESSION['foto_usuario'] = $usuario['foto'];
                     $_SESSION['login_time'] = time();
                     
                     // Redireciona conforme o tipo de usuário
@@ -111,7 +112,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <!-- Credenciais de teste -->
         <div class="alert alert-info mb-4">
             <strong>Credenciais para teste:</strong><br>
-            <strong>Admin:</strong> admin@mef.com | 123<br>
+            <strong>Admin:</strong> admin@mef.com | admin123<br>
             <strong>Usuário:</strong> Cadastre um novo usuário<br>
         </div>
         
@@ -157,7 +158,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="input-group">
               <span class="input-group-text"><i class="bi bi-lock"></i></span>
               <input type="password" class="form-control mef-form-control" id="password" name="password" 
-                     placeholder="Sua senha" required>
+                     placeholder="Sua senha (8-14 caracteres)" minlength="8" maxlength="14" required>
             </div>
           </div>
           

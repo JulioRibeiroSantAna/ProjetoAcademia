@@ -14,16 +14,31 @@ $usuario_nome = isset($_SESSION['nome_usuario']) ? $_SESSION['nome_usuario'] : '
 $usuario_apelido = isset($_SESSION['apelido_usuario']) ? $_SESSION['apelido_usuario'] : '';
 $usuario_email = isset($_SESSION['email_usuario']) ? $_SESSION['email_usuario'] : "";
 $usuario_telefone = isset($_SESSION['telefone_usuario']) ? $_SESSION['telefone_usuario'] : "";
+$usuario_foto = isset($_SESSION['foto_usuario']) ? $_SESSION['foto_usuario'] : "";
 
 // Usa apelido se tiver, senão usa nome completo
 $nome_exibicao = !empty(trim($usuario_apelido)) ? $usuario_apelido : $usuario_nome;
+
+// Verifica se há mensagem de sucesso
+$show_success = isset($_GET['msg']) && $_GET['msg'] === 'success';
 ?>
+
+<?php if ($show_success): ?>
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle me-2"></i>Perfil atualizado com sucesso!
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+<?php endif; ?>
 
 <div class="mef-card">
     <div class="row">
         <div class="col-md-4 text-center mb-4 mb-md-0">
             <div class="mb-3">
-                <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Avatar do usuário" class="rounded-circle" style="width: 150px; height: 150px; object-fit: cover;">
+                <?php if (!empty($usuario_foto) && file_exists(__DIR__ . '/../' . $usuario_foto)): ?>
+                    <img src="../<?php echo htmlspecialchars($usuario_foto); ?>?v=<?php echo time(); ?>" alt="Avatar do usuário" class="rounded-circle" style="width: 150px; height: 150px; object-fit: cover;">
+                <?php else: ?>
+                    <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Avatar do usuário" class="rounded-circle" style="width: 150px; height: 150px; object-fit: cover;">
+                <?php endif; ?>
             </div>
             <h3><?php echo htmlspecialchars($nome_exibicao); ?></h3>
         </div>
