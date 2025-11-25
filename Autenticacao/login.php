@@ -109,13 +109,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <div class="mef-card auth-card">
         <h1 class="text-center mb-4 fade-in-up">Login</h1>
         
-        <!-- Credenciais de teste -->
-        <div class="alert alert-info mb-4">
-            <strong>Credenciais para teste:</strong><br>
-            <strong>Admin:</strong> admin@mef.com | admin123<br>
-            <strong>Usuário:</strong> Cadastre um novo usuário<br>
-        </div>
-        
         <!-- Mensagem de sucesso do cadastro -->
         <?php if (isset($_SESSION['mensagem'])): ?>
           <div class="alert alert-success fade-in-up">
