@@ -88,6 +88,39 @@ Você deve ver 3 containers ativos:
 
 ### Troubleshooting WSL
 
+**Erro "Connection refused" ao acessar o site:**
+
+1. **Verifique se todos os containers estão rodando:**
+```bash
+docker-compose ps
+```
+
+Todos devem estar "Up" e "healthy".
+
+2. **Teste a conexão com banco de dados:**
+- Acesse: http://localhost:8080/test_connection.php
+- Este script testa todas as configurações possíveis
+
+3. **Aguarde o banco inicializar completamente:**
+O MySQL pode levar 30-60 segundos para iniciar na primeira vez.
+```bash
+# Aguarde até ver "ready for connections"
+docker-compose logs -f db
+```
+
+4. **Reconstrua os containers:**
+```bash
+docker-compose down -v
+docker-compose build --no-cache
+docker-compose up -d
+```
+
+5. **Verifique conectividade entre containers:**
+```bash
+# De dentro do container web, tenta pingar o banco
+docker exec -it siteacademia_web ping -c 3 db
+```
+
 **Erro de conexão com banco de dados:**
 - Certifique-se que o Docker Desktop está rodando
 - Verifique se as portas 8080, 3306 e 8081 não estão em uso:

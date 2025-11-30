@@ -7,9 +7,12 @@ services:
     ports:
       - "8080:80"
     volumes:
-      - ./:/var/www/html # Descomente esta linha para desenvolvimento
+      - ./:/var/www/html
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+    networks:
+      - siteacademia_network
     restart: always
 
   db:
@@ -25,6 +28,13 @@ services:
     volumes:
       - db_data:/var/lib/mysql
       - ./docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+    networks:
+      - siteacademia_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
     restart: always
 
   phpmyadmin:
@@ -38,7 +48,13 @@ services:
       - "8081:80"
     depends_on:
       - db
+    networks:
+      - siteacademia_network
     restart: always
+
+networks:
+  siteacademia_network:
+    driver: bridge
 
 volumes:
   db_data:

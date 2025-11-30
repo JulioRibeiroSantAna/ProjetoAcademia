@@ -25,12 +25,15 @@ if (strpos($base_url, '/Autenticacao') !== false) {
 
 define('BASE_URL', $base_url);
 
-// Detecta automaticamente se está rodando em Docker ou localmente
+// Detecta automaticamente o host do banco de dados
+// Prioridade: db (container) > siteacademia_db (nome do container) > localhost
 if (getenv('DOCKER_ENV') === 'true' || file_exists('/.dockerenv')) {
+    // Está rodando dentro do container Docker
     define('DB_HOST', 'db');
 } else {
-    // Para ambiente local/WSL - usar localhost ou 127.0.0.1
-    define('DB_HOST', 'localhost');
+    // Está rodando fora do container (WSL/host)
+    // Tenta conectar no container pelo nome
+    define('DB_HOST', 'siteacademia_db');
 }
 
 define('DB_NAME', 'sistema_nutricao');
