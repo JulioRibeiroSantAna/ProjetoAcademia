@@ -25,7 +25,14 @@ if (strpos($base_url, '/Autenticacao') !== false) {
 
 define('BASE_URL', $base_url);
 
-define('DB_HOST', 'db');
+// Detecta automaticamente se está rodando em Docker ou localmente
+if (getenv('DOCKER_ENV') === 'true' || file_exists('/.dockerenv')) {
+    define('DB_HOST', 'db');
+} else {
+    // Para ambiente local/WSL - usar localhost ou 127.0.0.1
+    define('DB_HOST', 'localhost');
+}
+
 define('DB_NAME', 'sistema_nutricao');
 define('DB_USER', 'user');
 define('DB_PASS', 'password');

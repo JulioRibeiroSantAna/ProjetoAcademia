@@ -41,6 +41,9 @@ RUN echo "<VirtualHost *:80>\n\
 # Copia o conteúdo do projeto para dentro do container
 COPY . /var/www/html/
 
+# Define variável de ambiente para indicar que está no Docker
+ENV DOCKER_ENV=true
+
 # Define o diretório de trabalho
 WORKDIR /var/www/html
 
