@@ -27,10 +27,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $data_completa = $data . ' ' . $hora . ':00';
         
         try {
-            // Inicia transação
             $pdo->beginTransaction();
             
-            // Verifica se já existe agendamento
+            // Verifica se já existe agendamento neste slot
             $stmt = $pdo->prepare("SELECT COUNT(*) FROM agendamentos WHERE id_nutricionista = ? AND data_hora = ?");
             $stmt->execute([$profissional, $data_completa]);
             
@@ -38,17 +37,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Insere o agendamento
                 $stmt = $pdo->prepare("INSERT INTO agendamentos (id_nutricionista, id_usuario, data_hora) VALUES (?, ?, ?)");
                 $stmt->execute([$profissional, $id_usuario, $data_completa]);
-                
-                // Atualiza o status do horário para 'reservado'
-                // Marca como reservado o bloco de horário que contém o horário agendado
-                $stmt = $pdo->prepare("UPDATE horarios_profissionais 
-                    SET status = 'reservado' 
-                    WHERE id_profissional = ? 
-                    AND data_atendimento = ? 
-                    AND ? >= hora_inicio 
-                    AND ? < hora_fim 
-                    AND status = 'disponivel'");
-                $stmt->execute([$profissional, $data, $hora . ':00', $hora . ':00']);
                 
                 $pdo->commit();
                 $msg = 'Consulta agendada com sucesso!';
@@ -148,6 +136,7 @@ try {
 <script>
 let horariosProfissional = [];
 let datasDisponiveis = [];
+let slotsAgendados = []; // Slots já ocupados
 
 async function carregarHorariosProfissional() {
     const profId = document.getElementById('select_profissional').value;
@@ -165,8 +154,13 @@ async function carregarHorariosProfissional() {
     }
     
     try {
-        const response = await fetch(`../includes-Gerais/profissionais-gerenciamento.php?get_horarios=${profId}`);
-        horariosProfissional = await response.json();
+        // Busca blocos de horários
+        const responseHorarios = await fetch(`../includes-Gerais/profissionais-gerenciamento.php?get_horarios=${profId}`);
+        horariosProfissional = await responseHorarios.json();
+        
+        // Busca slots já agendados
+        const responseAgendados = await fetch(`../includes-Gerais/profissionais-gerenciamento.php?get_agendados=${profId}`);
+        slotsAgendados = await responseAgendados.json();
         
         if (horariosProfissional.length === 0) {
             calendarioContainer.style.display = 'none';
@@ -278,6 +272,8 @@ function atualizarHorariosDisponiveis(data) {
     
     selectHora.innerHTML = '<option value="">Escolha um horário</option>';
     
+    let slotsLivres = 0;
+    
     horariosDisponiveis.forEach(horario => {
         const inicio = horario.hora_inicio.substring(0, 5);
         const fim = horario.hora_fim.substring(0, 5);
@@ -291,10 +287,16 @@ function atualizarHorariosDisponiveis(data) {
         
         // Se a duração for menor que 1 hora, mostra o horário completo sem dividir
         if (duracaoTotal <= 60) {
-            const option = document.createElement('option');
-            option.value = inicio;
-            option.textContent = `${inicio} - ${fim}`;
-            selectHora.appendChild(option);
+            // Verifica se este slot já está agendado
+            const jaAgendado = slotsAgendados.some(slot => slot.data === data && slot.hora === inicio);
+            
+            if (!jaAgendado) {
+                const option = document.createElement('option');
+                option.value = inicio;
+                option.textContent = `${inicio} - ${fim}`;
+                selectHora.appendChild(option);
+                slotsLivres++;
+            }
         } else {
             // Se for maior que 1 hora, divide em slots de 30 minutos
             while (minutos < minutosFim) {
@@ -302,24 +304,36 @@ function atualizarHorariosDisponiveis(data) {
                 const m = minutos % 60;
                 const horaInicioSlot = String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
                 
-                // Calcula o horário final do slot (30 minutos depois ou o fim do período)
-                const minutosProximo = Math.min(minutos + 30, minutosFim);
-                const hFim = Math.floor(minutosProximo / 60);
-                const mFim = minutosProximo % 60;
-                const horaFimSlot = String(hFim).padStart(2, '0') + ':' + String(mFim).padStart(2, '0');
+                // Verifica se este slot já está agendado
+                const jaAgendado = slotsAgendados.some(slot => slot.data === data && slot.hora === horaInicioSlot);
                 
-                const option = document.createElement('option');
-                option.value = horaInicioSlot;
-                option.textContent = `${horaInicioSlot} - ${horaFimSlot}`;
-                selectHora.appendChild(option);
+                if (!jaAgendado) {
+                    // Calcula o horário final do slot (30 minutos depois ou o fim do período)
+                    const minutosProximo = Math.min(minutos + 30, minutosFim);
+                    const hFim = Math.floor(minutosProximo / 60);
+                    const mFim = minutosProximo % 60;
+                    const horaFimSlot = String(hFim).padStart(2, '0') + ':' + String(mFim).padStart(2, '0');
+                    
+                    const option = document.createElement('option');
+                    option.value = horaInicioSlot;
+                    option.textContent = `${horaInicioSlot} - ${horaFimSlot}`;
+                    selectHora.appendChild(option);
+                    slotsLivres++;
+                }
                 
                 minutos += 30;
             }
         }
     });
     
-    infoHorarios.textContent = `Horários disponíveis: ${horariosDisponiveis.map(h => h.hora_inicio.substring(0,5) + ' - ' + h.hora_fim.substring(0,5)).join(', ')}`;
-    infoHorarios.className = 'text-dark mt-1';
+    if (slotsLivres === 0) {
+        selectHora.innerHTML = '<option value="">Todos os horários estão ocupados</option>';
+        infoHorarios.textContent = 'Todos os horários desta data já foram agendados';
+        infoHorarios.className = 'text-danger mt-1';
+    } else {
+        infoHorarios.textContent = `${slotsLivres} horário(s) disponível(is) nesta data`;
+        infoHorarios.className = 'text-success mt-1';
+    }
 }
 </script>
 

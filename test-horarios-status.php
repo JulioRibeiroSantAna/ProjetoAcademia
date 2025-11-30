@@ -46,9 +46,9 @@ foreach ($horarios as $h) {
 echo "</table>";
 
 echo "<hr><h2>Script de Correção</h2>";
-echo "<p>Para corrigir horários que têm agendamento mas ainda estão como 'disponível':</p>";
+echo "<p><strong>1. Marcar como RESERVADO</strong> horários que têm agendamento mas estão como 'disponível':</p>";
 
-// Busca e corrige
+// Busca e corrige - marca como reservado
 $stmt = $pdo->query("
     UPDATE horarios_profissionais hp
     SET hp.status = 'reservado'
@@ -63,7 +63,26 @@ $stmt = $pdo->query("
 ");
 
 $corrigidos = $stmt->rowCount();
-echo "<p><strong style='color: green;'>✓ {$corrigidos} horário(s) foram corrigidos!</strong></p>";
+echo "<p><strong style='color: green;'>✓ {$corrigidos} horário(s) foram marcados como reservados!</strong></p>";
+
+echo "<p><strong>2. Marcar como DISPONÍVEL</strong> horários que estão reservados mas NÃO têm agendamentos:</p>";
+
+// Libera horários sem agendamentos
+$stmt = $pdo->query("
+    UPDATE horarios_profissionais hp
+    SET hp.status = 'disponivel'
+    WHERE hp.status = 'reservado'
+    AND NOT EXISTS (
+        SELECT 1 FROM agendamentos a
+        WHERE a.id_nutricionista = hp.id_profissional
+        AND DATE(a.data_hora) = hp.data_atendimento
+        AND TIME(a.data_hora) >= hp.hora_inicio
+        AND TIME(a.data_hora) < hp.hora_fim
+    )
+");
+
+$liberados = $stmt->rowCount();
+echo "<p><strong style='color: blue;'>✓ {$liberados} horário(s) foram liberados!</strong></p>";
 
 echo "<p><a href='test-horarios-status.php'>Atualizar</a></p>";
 ?>

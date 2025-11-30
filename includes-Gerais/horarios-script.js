@@ -133,15 +133,14 @@ async function verHorarios(id, nome) {
                 
                 const item = document.createElement('div');
                 item.className = 'list-group-item d-flex justify-content-between align-items-center';
-                item.style.borderLeft = h.status === 'reservado' ? '4px solid #dc3545' : '4px solid #667eea';
+                item.style.borderLeft = '4px solid #667eea';
                 item.innerHTML = `
                     <div>
-                        <strong style="color: ${h.status === 'reservado' ? '#dc3545' : '#667eea'};">${dataFormatada}</strong>
+                        <strong style="color: #667eea;">${dataFormatada}</strong>
                         <br>
                         <small class="text-dark">
                             <i class="bi bi-clock"></i> ${h.hora_inicio.substring(0,5)} - ${h.hora_fim.substring(0,5)}
                         </small>
-                        ${h.status === 'reservado' ? '<br><span class="badge bg-danger mt-1">Ocupado</span>' : '<span class="badge bg-success mt-1">Disponível</span>'}
                     </div>
                 `;
                 lista.appendChild(item);

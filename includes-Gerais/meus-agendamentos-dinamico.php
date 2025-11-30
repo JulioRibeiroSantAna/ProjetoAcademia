@@ -19,6 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($acao === 'excluir') {
         $id_agendamento = $_POST['id_agendamento'] ?? 0;
         try {
+            // Simplesmente deleta o agendamento
             if ($is_admin) {
                 $stmt = $pdo->prepare("DELETE FROM agendamentos WHERE id_agendamento = ?");
                 $stmt->execute([$id_agendamento]);
@@ -26,9 +27,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt = $pdo->prepare("DELETE FROM agendamentos WHERE id_agendamento = ? AND id_usuario = ?");
                 $stmt->execute([$id_agendamento, $id_usuario]);
             }
-            $msg = 'Agendamento excluído com sucesso!';
+            
+            if ($stmt->rowCount() > 0) {
+                $msg = 'Agendamento excluído com sucesso!';
+            } else {
+                $msg = 'Agendamento não encontrado!';
+            }
         } catch (PDOException $e) {
             $msg = 'Erro ao excluir agendamento!';
+            error_log("Erro ao excluir: " . $e->getMessage());
         }
     }
     

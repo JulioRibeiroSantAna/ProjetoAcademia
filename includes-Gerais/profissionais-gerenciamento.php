@@ -21,7 +21,18 @@ if (isset($_SESSION['msg_sucesso'])) {
 
 if (isset($_GET['get_horarios'])) {
     $id_prof = intval($_GET['get_horarios']);
-    $stmt = $pdo->prepare('SELECT * FROM horarios_profissionais WHERE id_profissional = ? AND data_atendimento >= CURDATE() AND status = "disponivel" ORDER BY data_atendimento, hora_inicio');
+    // Busca todos os blocos de horário do profissional (sem filtro de status)
+    $stmt = $pdo->prepare('SELECT * FROM horarios_profissionais WHERE id_profissional = ? AND data_atendimento >= CURDATE() ORDER BY data_atendimento, hora_inicio');
+    $stmt->execute([$id_prof]);
+    header('Content-Type: application/json');
+    echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
+    exit;
+}
+
+// Novo endpoint: retorna slots já agendados
+if (isset($_GET['get_agendados'])) {
+    $id_prof = intval($_GET['get_agendados']);
+    $stmt = $pdo->prepare('SELECT DATE(data_hora) as data, TIME_FORMAT(data_hora, "%H:%i") as hora FROM agendamentos WHERE id_nutricionista = ? AND data_hora >= NOW() ORDER BY data_hora');
     $stmt->execute([$id_prof]);
     header('Content-Type: application/json');
     echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
@@ -62,7 +73,6 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS horarios_profissionais (
     data_atendimento DATE NOT NULL,
     hora_inicio TIME NOT NULL,
     hora_fim TIME NOT NULL,
-    status ENUM('disponivel', 'reservado') DEFAULT 'disponivel',
     FOREIGN KEY (id_profissional) REFERENCES profissionais(id) ON DELETE CASCADE,
     INDEX idx_profissional_data (id_profissional, data_atendimento)
 )");
@@ -151,7 +161,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_admin) {
                     if (!empty($_POST['horarios_json'])) {
                         $horariosJson = json_decode($_POST['horarios_json'], true);
                         if ($horariosJson && is_array($horariosJson)) {
-                            $stmt_horario = $pdo->prepare('INSERT INTO horarios_profissionais (id_profissional, data_atendimento, hora_inicio, hora_fim, status) VALUES (?, ?, ?, ?, "disponivel")');
+                            $stmt_horario = $pdo->prepare('INSERT INTO horarios_profissionais (id_profissional, data_atendimento, hora_inicio, hora_fim) VALUES (?, ?, ?, ?)');
                             foreach ($horariosJson as $h) {
                                 if (!empty($h['data']) && !empty($h['hora_inicio']) && !empty($h['hora_fim'])) {
                                     $stmt_horario->execute([$id_profissional, $h['data'], $h['hora_inicio'], $h['hora_fim']]);
@@ -223,12 +233,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_admin) {
                     $stmt = $pdo->prepare('UPDATE profissionais SET nome = ?, especialidade = ?, email = ?, telefone = ?, descricao = ?, foto = ? WHERE id = ?');
                     $stmt->execute([$nome, $especialidade, $email, $telefone, $descricao, $foto, $id]);
                     
-                    $pdo->prepare('DELETE FROM horarios_profissionais WHERE id_profissional = ? AND data_atendimento >= CURDATE() AND status = "disponivel"')->execute([$id]);
+                    // Remove horários futuros para recriar
+                    $pdo->prepare('DELETE FROM horarios_profissionais WHERE id_profissional = ? AND data_atendimento >= CURDATE()')->execute([$id]);
                     
                     if (!empty($_POST['horarios_json'])) {
                         $horariosJson = json_decode($_POST['horarios_json'], true);
                         if ($horariosJson && is_array($horariosJson)) {
-                            $stmt_horario = $pdo->prepare('INSERT INTO horarios_profissionais (id_profissional, data_atendimento, hora_inicio, hora_fim, status) VALUES (?, ?, ?, ?, "disponivel")');
+                            $stmt_horario = $pdo->prepare('INSERT INTO horarios_profissionais (id_profissional, data_atendimento, hora_inicio, hora_fim) VALUES (?, ?, ?, ?)');
                             foreach ($horariosJson as $h) {
                                 if (!empty($h['data']) && !empty($h['hora_inicio']) && !empty($h['hora_fim'])) {
                                     $stmt_horario->execute([$id, $h['data'], $h['hora_inicio'], $h['hora_fim']]);
@@ -267,6 +278,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_admin) {
             }
         }
     }
+    
+    if ($acao === 'excluir_horario') {
+        $id_horario = $_POST['id_horario'] ?? 0;
+        if ($id_horario) {
+            try {
+                // Verifica se há agendamentos para este horário
+                $stmt = $pdo->prepare('SELECT COUNT(*) FROM agendamentos a
+                    INNER JOIN horarios_profissionais h ON a.id_nutricionista = h.id_profissional
+                    WHERE h.id = ? 
+                    AND DATE(a.data_hora) = h.data_atendimento
+                    AND TIME(a.data_hora) >= h.hora_inicio
+                    AND TIME(a.data_hora) < h.hora_fim');
+                $stmt->execute([$id_horario]);
+                
+                if ($stmt->fetchColumn() > 0) {
+                    echo json_encode(['success' => false, 'message' => 'Não é possível excluir este horário pois existem agendamentos marcados!']);
+                } else {
+                    $stmt = $pdo->prepare('DELETE FROM horarios_profissionais WHERE id = ?');
+                    $stmt->execute([$id_horario]);
+                    echo json_encode(['success' => true, 'message' => 'Horário excluído com sucesso!']);
+                }
+                exit;
+            } catch (PDOException $e) {
+                echo json_encode(['success' => false, 'message' => 'Erro ao excluir horário']);
+                exit;
+            }
+        }
+    }
 }
 
 // Buscar profissionais
@@ -275,7 +314,8 @@ try {
     $profissionais = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
     foreach ($profissionais as $key => $prof) {
-        $stmt_horarios = $pdo->prepare('SELECT COUNT(*) as total FROM horarios_profissionais WHERE id_profissional = ? AND data_atendimento >= CURDATE() AND status = "disponivel"');
+        // Conta total de horários cadastrados (sem filtro de status)
+        $stmt_horarios = $pdo->prepare('SELECT COUNT(*) as total FROM horarios_profissionais WHERE id_profissional = ? AND data_atendimento >= CURDATE()');
         $stmt_horarios->execute([$prof['id']]);
         $result = $stmt_horarios->fetch(PDO::FETCH_ASSOC);
         $profissionais[$key]['total_horarios'] = $result['total'];
