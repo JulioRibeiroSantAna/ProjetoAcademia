@@ -143,7 +143,7 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS videos_topicos (
  * FLUXO:
  * 1. Verifica se a pasta uploads/videos/ existe (cria se não existir)
  * 2. Valida a extensão do arquivo (só aceita formatos de vídeo)
- * 3. Valida o tamanho (máximo 100MB)
+ * 3. Valida o tamanho (máximo 500MB)
  * 4. Gera um nome único pro arquivo (evita sobrescrever)
  * 5. Move o arquivo da pasta temporária pra uploads/videos/
  * 6. Retorna sucesso (nome do arquivo) ou erro
@@ -190,16 +190,16 @@ function uploadVideo($file) {
         return ['erro' => 'Formato de vídeo não permitido! Use: ' . implode(', ', $extensoes_permitidas)];
     }
     
-    // Define o tamanho máximo do arquivo: 100MB
+    // Define o tamanho máximo do arquivo: 500MB
     // 1 MB = 1024 KB
     // 1 KB = 1024 bytes
-    // Então: 100 * 1024 * 1024 = 104.857.600 bytes
-    $tamanho_maximo = 100 * 1024 * 1024;
+    // Então: 500 * 1024 * 1024 = 524.288.000 bytes
+    $tamanho_maximo = 500 * 1024 * 1024;
     
     // Verifica se o arquivo é maior que o limite
     // $file['size'] retorna o tamanho em bytes
     if ($file['size'] > $tamanho_maximo) {
-        return ['erro' => 'O vídeo deve ter no máximo 100MB!'];
+        return ['erro' => 'O vídeo deve ter no máximo 500MB!'];
     }
     
     // Gera um nome único pro arquivo
@@ -240,10 +240,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_admin) {
             $msg = '❌ Título, descrição e categoria são obrigatórios!';
         } else {
             $arquivo_video = null;
+            $thumbnail_video = null;
             $url_final = $url;
             
+            // UPLOAD DE THUMBNAIL (se houver)
+            if (isset($_FILES['thumbnail_file']) && $_FILES['thumbnail_file']['error'] === UPLOAD_ERR_OK) {
+                $thumb_file = $_FILES['thumbnail_file'];
+                $extensoes_thumb = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+                $extensao_thumb = strtolower(pathinfo($thumb_file['name'], PATHINFO_EXTENSION));
+                
+                if (!in_array($extensao_thumb, $extensoes_thumb)) {
+                    $msg = '❌ Formato de imagem inválido! Use: JPG, PNG, GIF ou WEBP';
+                } elseif ($thumb_file['size'] > 5 * 1024 * 1024) { // Max 5MB para thumbnail
+                    $msg = '❌ A capa deve ter no máximo 5MB!';
+                } else {
+                    $nome_thumb = uniqid() . '_' . time() . '.' . $extensao_thumb;
+                    $destino_thumb = __DIR__ . '/../uploads/videos/thumbnails/' . $nome_thumb;
+                    
+                    // Cria diretório se não existir
+                    if (!file_exists(__DIR__ . '/../uploads/videos/thumbnails/')) {
+                        mkdir(__DIR__ . '/../uploads/videos/thumbnails/', 0777, true);
+                    }
+                    
+                    if (move_uploaded_file($thumb_file['tmp_name'], $destino_thumb)) {
+                        $thumbnail_video = $nome_thumb;
+                    }
+                }
+            }
+            
             // OPÇÃO 1: Upload de arquivo do PC
-            if ($tipo_video === 'arquivo' && isset($_FILES['video_file']) && $_FILES['video_file']['error'] === UPLOAD_ERR_OK) {
+            if (!$msg && $tipo_video === 'arquivo' && isset($_FILES['video_file']) && $_FILES['video_file']['error'] === UPLOAD_ERR_OK) {
                 $resultado = uploadVideo($_FILES['video_file']);
                 if (isset($resultado['erro'])) {
                     $msg = '❌ ' . $resultado['erro'];
@@ -253,7 +279,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_admin) {
                 }
             } 
             // OPÇÃO 2: URL do YouTube
-            elseif ($tipo_video === 'url') {
+            elseif (!$msg && $tipo_video === 'url') {
                 if (!$url) {
                     $msg = '❌ URL do YouTube é obrigatória!';
                 } elseif (!filter_var($url, FILTER_VALIDATE_URL)) {
@@ -281,8 +307,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_admin) {
             if (!isset($msg) || strpos($msg, '❌') === false) {
                 try {
                     // Insere vídeo na tabela videos
-                    $stmt = $pdo->prepare("INSERT INTO videos (titulo, descricao, url, arquivo_video, tipo_video, id_nutricionista) VALUES (?, ?, ?, ?, ?, ?)");
-                    $stmt->execute([$titulo, $descricao, $url_final, $arquivo_video, $tipo_video, 1]);
+                    $stmt = $pdo->prepare("INSERT INTO videos (titulo, descricao, url, arquivo_video, thumbnail_video, tipo_video, id_nutricionista) VALUES (?, ?, ?, ?, ?, ?, ?)");
+                    $stmt->execute([$titulo, $descricao, $url_final, $arquivo_video, $thumbnail_video, $tipo_video, 1]);
                     $video_id = $pdo->lastInsertId();
                 
                 // Verifica se a categoria já existe
@@ -365,7 +391,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_admin) {
         $id = $_POST['video_id'] ?? 0;
         try {
             // Buscar dados do vídeo antes de excluir
-            $stmt = $pdo->prepare("SELECT arquivo_video FROM videos WHERE id_video = ?");
+            $stmt = $pdo->prepare("SELECT arquivo_video, thumbnail_video FROM videos WHERE id_video = ?");
             $stmt->execute([$id]);
             $video = $stmt->fetch();
             
@@ -385,6 +411,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_admin) {
                 }
             }
             
+            // Se tinha thumbnail, excluir também
+            if ($video && $video['thumbnail_video']) {
+                $caminho_thumb = __DIR__ . '/../uploads/videos/thumbnails/' . $video['thumbnail_video'];
+                if (file_exists($caminho_thumb)) {
+                    unlink($caminho_thumb);
+                }
+            }
+            
             $msg = '✅ Vídeo excluído com sucesso!';
         } catch (PDOException $e) {
             $msg = '❌ Erro ao excluir vídeo: ' . $e->getMessage();
@@ -393,14 +427,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_admin) {
 }
 
 // Pega filtros da URL (pesquisa e categoria)
-$filtro_categoria = $_GET['categoria'] ?? '';
+$filtro_categorias = isset($_GET['categorias']) ? explode(',', $_GET['categorias']) : [];
 $filtro_busca = $_GET['busca'] ?? '';
 
 // Buscar vídeos com filtros aplicados
 try {
     // Monta query SQL base
     $sql = "
-        SELECT v.*, t.nome as categoria 
+        SELECT DISTINCT v.*, GROUP_CONCAT(t.nome) as categorias
         FROM videos v 
         LEFT JOIN videos_topicos vt ON v.id_video = vt.videos_id
         LEFT JOIN topicos t ON vt.topicos_id = t.id_topico
@@ -409,10 +443,11 @@ try {
     
     $params = [];
     
-    // Se escolheu uma categoria, filtra por ela
-    if ($filtro_categoria) {
-        $sql .= " AND t.nome = ?";
-        $params[] = $filtro_categoria;
+    // Se escolheu categorias, filtra por elas (OR logic)
+    if (!empty($filtro_categorias)) {
+        $placeholders = implode(',', array_fill(0, count($filtro_categorias), '?'));
+        $sql .= " AND t.nome IN ($placeholders)";
+        $params = array_merge($params, $filtro_categorias);
     }
     
     // Se digitou algo na pesquisa, busca no título ou descrição
@@ -422,7 +457,7 @@ try {
         $params[] = "%$filtro_busca%";
     }
     
-    $sql .= " ORDER BY v.data_upload DESC";
+    $sql .= " GROUP BY v.id_video ORDER BY v.data_upload DESC";
     
     $stmt = $pdo->prepare($sql);
     $stmt->execute($params);
@@ -467,7 +502,7 @@ try {
 }
 
 .mef-card {
-    margin-top: 180px;
+    margin-top: 250px;
 }
 
 .search-filter-container {
@@ -536,7 +571,7 @@ try {
 
 .filter-icon {
     position: absolute;
-    left: 18px;
+    left: 24px;
     top: 50%;
     transform: translateY(-50%);
     color: rgba(255, 255, 255, 0.6);
@@ -550,7 +585,7 @@ try {
     background: rgba(255, 255, 255, 0.1) !important;
     border: 1px solid rgba(255, 255, 255, 0.2) !important;
     color: #ffffff !important;
-    padding: 12px 40px 12px 45px !important;
+    padding: 12px 45px 12px 55px !important;
     border-radius: 25px;
     font-size: 0.95rem;
     font-weight: 400;
@@ -560,7 +595,7 @@ try {
     appearance: none;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ffffff' d='M6 9L1 4h10z'/%3E%3C/svg%3E") !important;
     background-repeat: no-repeat !important;
-    background-position: right 15px center !important;
+    background-position: right 20px center !important;
 }
 
 .filter-select-modern:focus {
@@ -582,6 +617,57 @@ try {
 
 .filter-box-wrapper:hover .filter-icon {
     color: rgba(102, 126, 234, 1);
+}
+
+/* Chips de Categorias */
+.category-chips-container {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    margin-top: 20px;
+    padding: 0 20px;
+}
+
+.category-chip {
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.8);
+    padding: 10px 18px;
+    border-radius: 25px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 500;
+    user-select: none;
+}
+
+.category-chip:hover {
+    background: rgba(102, 126, 234, 0.2);
+    border-color: rgba(102, 126, 234, 0.5);
+    color: #ffffff;
+    transform: translateY(-2px);
+}
+
+.category-chip.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-color: #667eea;
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.category-chip.active:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+}
+
+.category-chip i {
+    font-size: 1rem;
 }
 
 /* Botão de Busca */
@@ -615,11 +701,13 @@ try {
 /* Barra de Informações dos Filtros */
 .filter-info-bar {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
     margin-top: 20px;
-    padding-top: 20px;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 0;
+    padding: 12px 20px;
+    background: rgba(102, 126, 234, 0.08);
+    border-radius: 12px;
     flex-wrap: wrap;
     gap: 15px;
 }
@@ -628,54 +716,57 @@ try {
     display: flex;
     gap: 10px;
     flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
 }
 
 .filter-tag {
-    background: rgba(102, 126, 234, 0.2);
-    border: 1px solid rgba(102, 126, 234, 0.4);
+    background: rgba(102, 126, 234, 0.25);
+    border: 1px solid rgba(102, 126, 234, 0.5);
     color: #ffffff;
-    padding: 8px 16px;
+    padding: 8px 14px;
     border-radius: 20px;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     display: inline-flex;
     align-items: center;
     gap: 6px;
-}
-
-.filter-actions {
-    display: flex;
-    align-items: center;
-    gap: 20px;
+    font-weight: 500;
 }
 
 .results-count {
-    color: rgba(255, 255, 255, 0.7);
-    font-size: 0.95rem;
-    display: flex;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: rgba(255, 255, 255, 0.85);
+    padding: 8px 14px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    display: inline-flex;
     align-items: center;
+    gap: 6px;
     font-weight: 500;
 }
 
 .btn-clear-filters {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: rgba(255, 255, 255, 0.8);
-    padding: 8px 20px;
-    border-radius: 12px;
-    font-size: 0.9rem;
+    background: linear-gradient(135deg, rgba(255, 77, 77, 0.2) 0%, rgba(255, 77, 77, 0.3) 100%);
+    border: 2px solid rgba(255, 77, 77, 0.4);
+    color: #ffffff;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.85rem;
     text-decoration: none;
     transition: all 0.3s ease;
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    font-weight: 500;
+    font-weight: 600;
 }
 
 .btn-clear-filters:hover {
-    background: rgba(255, 77, 77, 0.2);
-    border-color: rgba(255, 77, 77, 0.4);
-    color: #ff4d4d;
+    background: linear-gradient(135deg, rgba(255, 77, 77, 0.4) 0%, rgba(255, 77, 77, 0.5) 100%);
+    border-color: rgba(255, 77, 77, 0.6);
+    color: #ffffff;
     transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 77, 77, 0.3);
 }
 
 /* ========== CARDS DE VÍDEOS MODERNOS ========== */
@@ -1097,13 +1188,13 @@ try {
     }
     
     .filter-select-modern {
-        padding: 14px 16px 14px 45px !important;
+        padding: 14px 40px 14px 50px !important;
     }
     
     .search-icon,
     .filter-icon {
         font-size: 1rem;
-        left: 16px;
+        left: 20px;
     }
     
     .btn-search-modern {
@@ -1161,51 +1252,77 @@ try {
                 >
             </div>
             
-            <div class="filter-box-wrapper">
-                <div class="filter-icon">
-                    <i class="bi bi-funnel"></i>
-                </div>
-                <select name="categoria" class="filter-select-modern">
-                    <option value="">Categorias</option>
-                    <?php foreach ($categorias as $cat): ?>
-                        <option value="<?php echo htmlspecialchars($cat); ?>" 
-                                <?php echo $filtro_categoria === $cat ? 'selected' : ''; ?>>
-                            <?php echo htmlspecialchars($cat); ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            
             <button type="submit" class="btn-search-modern">
                 <i class="bi bi-search me-2"></i>
                 <span>Buscar</span>
             </button>
         </div>
+        
+        <!-- Chips de Categorias -->
+        <div class="category-chips-container">
+            <?php 
+            $categorias_disponiveis = [
+                'Receitas' => '🍽️',
+                'Dicas' => '💡',
+                'Exercícios' => '🏃‍♂️',
+                'Nutrição' => '🥗',
+                'Bem-estar' => '🧘‍♀️',
+                'Suplementação' => '💊',
+                'Dietas' => '📋',
+                'Perda de Peso' => '⚖️',
+                'Ganho de Massa' => '💪'
+            ];
+            
+            foreach ($categorias_disponiveis as $cat => $emoji): 
+                $is_active = in_array($cat, $filtro_categorias);
+                
+                // Monta a URL para toggle
+                if ($is_active) {
+                    // Remove esta categoria
+                    $new_cats = array_filter($filtro_categorias, fn($c) => $c !== $cat);
+                } else {
+                    // Adiciona esta categoria
+                    $new_cats = array_merge($filtro_categorias, [$cat]);
+                }
+                
+                $cat_param = !empty($new_cats) ? '&categorias=' . urlencode(implode(',', $new_cats)) : '';
+                $busca_param = $filtro_busca ? '&busca=' . urlencode($filtro_busca) : '';
+                $url = '?' . ltrim($cat_param . $busca_param, '&');
+            ?>
+                <a href="<?php echo $url; ?>" class="category-chip <?php echo $is_active ? 'active' : ''; ?>">
+                    <span><?php echo $emoji; ?></span>
+                    <span><?php echo htmlspecialchars($cat); ?></span>
+                    <?php if ($is_active): ?>
+                        <i class="bi bi-x-lg" style="font-size: 0.75rem; margin-left: 4px;"></i>
+                    <?php endif; ?>
+                </a>
+            <?php endforeach; ?>
+        </div>
     </form>
     
-    <?php if ($filtro_categoria || $filtro_busca): ?>
+    <?php if (!empty($filtro_categorias) || $filtro_busca): ?>
         <div class="filter-info-bar">
             <div class="filter-tags">
+                <span class="results-count">
+                    <i class="bi bi-film me-2"></i>
+                    <?php echo count($videos); ?> resultado(s)
+                </span>
+                
                 <?php if ($filtro_busca): ?>
                     <span class="filter-tag">
                         <i class="bi bi-search me-1"></i>
                         "<?php echo htmlspecialchars($filtro_busca); ?>"
                     </span>
                 <?php endif; ?>
-                <?php if ($filtro_categoria): ?>
+                <?php foreach ($filtro_categorias as $cat): ?>
                     <span class="filter-tag">
                         <i class="bi bi-tag-fill me-1"></i>
-                        <?php echo htmlspecialchars($filtro_categoria); ?>
+                        <?php echo htmlspecialchars($cat); ?>
                     </span>
-                <?php endif; ?>
-            </div>
-            <div class="filter-actions">
-                <span class="results-count">
-                    <i class="bi bi-film me-2"></i>
-                    <?php echo count($videos); ?> resultado(s)
-                </span>
+                <?php endforeach; ?>
+                
                 <a href="?" class="btn-clear-filters">
-                    <i class="bi bi-x-circle me-1"></i>Limpar
+                    <i class="bi bi-x-circle me-1"></i>Limpar Filtros
                 </a>
             </div>
         </div>
@@ -1258,7 +1375,10 @@ try {
                     <div class="video-thumbnail-container">
                         <?php if ($video['tipo_video'] === 'arquivo' && $video['arquivo_video']): ?>
                             <!-- Vídeo enviado do PC -->
-                            <video class="video-thumbnail" controls controlsList="nodownload">
+                            <video class="video-thumbnail" controls controlsList="nodownload" 
+                                <?php if ($video['thumbnail_video']): ?>
+                                    poster="<?php echo BASE_URL; ?>/uploads/videos/thumbnails/<?php echo htmlspecialchars($video['thumbnail_video']); ?>"
+                                <?php endif; ?>>
                                 <source src="<?php echo BASE_URL; ?>/uploads/videos/<?php echo htmlspecialchars($video['arquivo_video']); ?>" type="video/mp4">
                                 Seu navegador não suporta o elemento de vídeo.
                             </video>
@@ -1280,7 +1400,7 @@ try {
                         
                         <?php if ($is_admin): ?>
                         <div class="video-actions">
-                            <button class="edit-video-btn" onclick="editarVideo(<?php echo $video['id_video']; ?>, '<?php echo htmlspecialchars($video['titulo'], ENT_QUOTES); ?>', '<?php echo htmlspecialchars($video['descricao'], ENT_QUOTES); ?>', '<?php echo htmlspecialchars($video['categoria'] ?? '', ENT_QUOTES); ?>')" title="Editar vídeo">
+                            <button class="edit-video-btn" onclick="editarVideo(<?php echo $video['id_video']; ?>, '<?php echo htmlspecialchars($video['titulo'], ENT_QUOTES); ?>', '<?php echo htmlspecialchars($video['descricao'], ENT_QUOTES); ?>', '<?php echo htmlspecialchars($video['categorias'] ?? '', ENT_QUOTES); ?>')" title="Editar vídeo">
                                 <i class="bi bi-pencil"></i>
                             </button>
                             <button class="delete-video-btn" onclick="excluirVideo(<?php echo $video['id_video']; ?>)" title="Excluir vídeo">
@@ -1296,10 +1416,10 @@ try {
                     </p>
                     
                     <!-- Categoria -->
-                    <?php if ($video['categoria']): ?>
+                    <?php if (isset($video['categorias']) && $video['categorias']): ?>
                     <span class="video-category-badge">
                         <i class="bi bi-tag"></i>
-                        <?php echo htmlspecialchars($video['categoria']); ?>
+                        <?php echo htmlspecialchars($video['categorias']); ?>
                     </span>
                     <?php endif; ?>
                 </div>
@@ -1380,7 +1500,19 @@ try {
                                    accept="video/*">
                             <small class="text-muted">
                                 <i class="bi bi-info-circle me-1"></i>
-                                Formatos suportados: MP4, AVI, MOV, WMV, FLV, WEBM, MKV • Tamanho máximo: 100MB
+                                Formatos suportados: MP4, AVI, MOV, WMV, FLV, WEBM, MKV • Tamanho máximo: 500MB
+                            </small>
+                        </div>
+                        
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label text-white">
+                                <i class="bi bi-image me-1"></i>Capa do Vídeo (Opcional)
+                            </label>
+                            <input type="file" class="form-control" name="thumbnail_file" id="inputThumbnail"
+                                   accept="image/jpeg,image/png,image/gif,image/webp">
+                            <small class="text-muted">
+                                <i class="bi bi-info-circle me-1"></i>
+                                Imagem que aparece antes de reproduzir o vídeo • Formatos: JPG, PNG, GIF, WEBP • Tamanho máximo: 5MB
                             </small>
                         </div>
                     </div>
@@ -1636,10 +1768,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 alert('Por favor, selecione um arquivo de vídeo!');
                 return false;
             }
-            // Verificar tamanho (100MB)
-            if (arquivo.size > 100 * 1024 * 1024) {
+            // Verificar tamanho (500MB)
+            if (arquivo.size > 500 * 1024 * 1024) {
                 e.preventDefault();
-                alert('O vídeo deve ter no máximo 100MB!');
+                alert('O vídeo deve ter no máximo 500MB!');
                 return false;
             }
         }

@@ -104,6 +104,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_admin) {
                     }
                 }
                 
+                // Verificar se o telefone já existe
+                if (!empty($telefone) && !$msg) {
+                    $stmt = $pdo->prepare('SELECT id FROM profissionais WHERE telefone = ?');
+                    $stmt->execute([$telefone]);
+                    if ($stmt->fetch()) {
+                        $msg = '❌ Este telefone já está cadastrado para outro profissional!';
+                    }
+                }
+                
                 if (!$msg) {
                     $stmt = $pdo->prepare('INSERT INTO profissionais (nome, especialidade, email, telefone, descricao, foto) VALUES (?, ?, ?, ?, ?, ?)');
                     $stmt->execute([$nome, $especialidade, $email, $telefone, $descricao, $foto]);
@@ -133,8 +142,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_admin) {
                 $prof_atual = $stmt->fetch();
                 $foto = $prof_atual['foto'];
                 
+                // Verificar se o telefone já existe em outro profissional
+                if (!empty($telefone)) {
+                    $stmt = $pdo->prepare('SELECT id FROM profissionais WHERE telefone = ? AND id != ?');
+                    $stmt->execute([$telefone, $id]);
+                    if ($stmt->fetch()) {
+                        $msg = '❌ Este telefone já está cadastrado para outro profissional!';
+                    }
+                }
+                
                 // Processar novo upload de foto
-                if (isset($_FILES['foto']) && $_FILES['foto']['error'] !== UPLOAD_ERR_NO_FILE) {
+                if (isset($_FILES['foto']) && $_FILES['foto']['error'] !== UPLOAD_ERR_NO_FILE && !$msg) {
                     $upload_result = uploadFotoProfissional($_FILES['foto']);
                     if ($upload_result['success']) {
                         // Remover foto antiga
@@ -457,7 +475,19 @@ textarea.form-control:focus {
                     
                     <div class="mb-3">
                         <label class="form-label">Especialidade *</label>
-                        <input type="text" class="form-control" name="especialidade" required>
+                        <select class="form-select" name="especialidade" required>
+                            <option value="">Selecione a especialidade</option>
+                            <option value="Nutricionista">Nutricionista</option>
+                            <option value="Médico Endocrinologista">Médico Endocrinologista</option>
+                            <option value="Educador Físico">Educador Físico</option>
+                            <option value="Psicólogo">Psicólogo</option>
+                            <option value="Fisioterapeuta">Fisioterapeuta</option>
+                            <option value="Médico Cardiologista">Médico Cardiologista</option>
+                            <option value="Enfermeiro">Enfermeiro</option>
+                            <option value="Terapeuta Ocupacional">Terapeuta Ocupacional</option>
+                            <option value="Fonoaudiólogo">Fonoaudiólogo</option>
+                            <option value="Médico Clínico Geral">Médico Clínico Geral</option>
+                        </select>
                     </div>
                     
                     <div class="mb-3">
@@ -467,7 +497,7 @@ textarea.form-control:focus {
                     
                     <div class="mb-3">
                         <label class="form-label">Telefone</label>
-                        <input type="tel" class="form-control" name="telefone">
+                        <input type="tel" class="form-control" name="telefone" placeholder="(51) 99999-9999" maxlength="15">
                     </div>
                     
                     <div class="mb-3">
@@ -515,7 +545,19 @@ textarea.form-control:focus {
                     
                     <div class="mb-3">
                         <label class="form-label">Especialidade *</label>
-                        <input type="text" class="form-control" name="especialidade" id="edit_especialidade" required>
+                        <select class="form-select" name="especialidade" id="edit_especialidade" required>
+                            <option value="">Selecione a especialidade</option>
+                            <option value="Nutricionista">Nutricionista</option>
+                            <option value="Médico Endocrinologista">Médico Endocrinologista</option>
+                            <option value="Educador Físico">Educador Físico</option>
+                            <option value="Psicólogo">Psicólogo</option>
+                            <option value="Fisioterapeuta">Fisioterapeuta</option>
+                            <option value="Médico Cardiologista">Médico Cardiologista</option>
+                            <option value="Enfermeiro">Enfermeiro</option>
+                            <option value="Terapeuta Ocupacional">Terapeuta Ocupacional</option>
+                            <option value="Fonoaudiólogo">Fonoaudiólogo</option>
+                            <option value="Médico Clínico Geral">Médico Clínico Geral</option>
+                        </select>
                     </div>
                     
                     <div class="mb-3">
@@ -525,7 +567,7 @@ textarea.form-control:focus {
                     
                     <div class="mb-3">
                         <label class="form-label">Telefone</label>
-                        <input type="tel" class="form-control" name="telefone" id="edit_telefone">
+                        <input type="tel" class="form-control" name="telefone" id="edit_telefone" placeholder="(51) 99999-9999" maxlength="15">
                     </div>
                     
                     <div class="mb-3">
@@ -545,6 +587,41 @@ textarea.form-control:focus {
 <script>
 // Definir variáveis globais
 const IS_ADMIN = <?php echo $is_admin ? 'true' : 'false'; ?>;
+
+// Função para máscara de telefone
+function formatarTelefone(input) {
+    let valor = input.value.replace(/\D/g, '');
+    
+    // Se começar com 51, manter
+    if (valor.length > 0) {
+        if (valor.length <= 2) {
+            valor = '(' + valor;
+        } else if (valor.length <= 6) {
+            valor = '(' + valor.substring(0, 2) + ') ' + valor.substring(2);
+        } else if (valor.length <= 10) {
+            valor = '(' + valor.substring(0, 2) + ') ' + valor.substring(2, 6) + '-' + valor.substring(6);
+        } else {
+            valor = '(' + valor.substring(0, 2) + ') ' + valor.substring(2, 7) + '-' + valor.substring(7, 11);
+        }
+    }
+    
+    input.value = valor;
+}
+
+// Adicionar evento aos campos de telefone
+document.addEventListener('DOMContentLoaded', function() {
+    const telefoneInputs = document.querySelectorAll('input[name="telefone"]');
+    telefoneInputs.forEach(input => {
+        input.addEventListener('input', function() {
+            formatarTelefone(this);
+        });
+        
+        // Se já tiver valor, formatar
+        if (input.value) {
+            formatarTelefone(input);
+        }
+    });
+});
 
 // Função para preview de imagem
 function previewImage(input, previewId) {

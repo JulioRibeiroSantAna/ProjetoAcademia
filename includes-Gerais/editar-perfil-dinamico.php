@@ -140,7 +140,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Telefone</label>
-                    <input type="tel" class="form-control" name="telefone" value="<?php echo htmlspecialchars($user['telefone']); ?>">
+                    <input type="tel" class="form-control" name="telefone" id="telefone_perfil" value="<?php echo htmlspecialchars($user['telefone']); ?>" placeholder="(51) 99999-9999" maxlength="15">
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Nova Senha (deixe em branco para não alterar)</label>
@@ -155,3 +155,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </div>
 </div>
+
+<script>
+// Função para máscara de telefone
+function formatarTelefone(input) {
+    let valor = input.value.replace(/\D/g, '');
+    
+    if (valor.length > 0) {
+        if (valor.length <= 2) {
+            valor = '(' + valor;
+        } else if (valor.length <= 6) {
+            valor = '(' + valor.substring(0, 2) + ') ' + valor.substring(2);
+        } else if (valor.length <= 10) {
+            valor = '(' + valor.substring(0, 2) + ') ' + valor.substring(2, 6) + '-' + valor.substring(6);
+        } else {
+            valor = '(' + valor.substring(0, 2) + ') ' + valor.substring(2, 7) + '-' + valor.substring(7, 11);
+        }
+    }
+    
+    input.value = valor;
+}
+
+// Aplicar máscara ao campo telefone
+document.addEventListener('DOMContentLoaded', function() {
+    const telefoneInput = document.getElementById('telefone_perfil');
+    if (telefoneInput) {
+        telefoneInput.addEventListener('input', function() {
+            formatarTelefone(this);
+        });
+        
+        // Formatar valor inicial se existir
+        if (telefoneInput.value) {
+            formatarTelefone(telefoneInput);
+        }
+    }
+});
+</script>

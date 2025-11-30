@@ -28,9 +28,9 @@ if (!isset($_SESSION['tipo_usuario']) || $_SESSION['tipo_usuario'] !== 'admin') 
   <?php include '../includes-Gerais/navbar-dinamica.php'; ?>
 
   <main class="logged-container">
-    <div class="container-symmetric">
+    <div class="container-fluid px-4">
       <div class="row justify-content-center">
-        <div class="col-12 col-lg-10">
+        <div class="col-12">
           <?php include '../includes-Gerais/profissionais-gerenciamento.php'; ?>
         </div>
       </div>
