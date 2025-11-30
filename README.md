@@ -70,17 +70,9 @@ cd ProjetoAcademia
 docker-compose up -d
 ```
 
-3. **Verifique se os containers estão rodando:**
-```bash
-docker-compose ps
-```
+O sistema usa **healthcheck** no MySQL, então o container web só sobe quando o banco estiver 100% pronto. Você pode acessar imediatamente!
 
-Você deve ver 3 containers ativos:
-- `siteacademia_web` (porta 8080)
-- `siteacademia_db` (porta 3306)
-- `siteacademia_phpmyadmin` (porta 8081)
-
-4. **Acesse o sistema:**
+3. **Acesse o sistema:**
 - **Site:** http://localhost:8080
 - **phpMyAdmin:** http://localhost:8081
   - Usuário: `root`
@@ -90,41 +82,34 @@ Você deve ver 3 containers ativos:
 
 **Erro "Connection refused" ao acessar o site:**
 
-1. **Verifique se todos os containers estão rodando:**
+1. **Teste a conexão:**
+```bash
+# Acesse para diagnóstico completo
+http://localhost:8080/debug_config.php
+```
+
+2. **Verifique containers:**
 ```bash
 docker-compose ps
+# Todos devem estar "Up" e "healthy"
 ```
 
-Todos devem estar "Up" e "healthy".
-
-2. **Teste a conexão com banco de dados:**
-- Acesse: http://localhost:8080/test_connection.php
-- Este script testa todas as configurações possíveis
-
-3. **Aguarde o banco inicializar completamente:**
-O MySQL pode levar 30-60 segundos para iniciar na primeira vez.
-```bash
-# Aguarde até ver "ready for connections"
-docker-compose logs -f db
-```
-
-4. **Reconstrua os containers:**
+3. **Reconstrua os containers:**
 ```bash
 docker-compose down -v
 docker-compose build --no-cache
 docker-compose up -d
 ```
 
-5. **Verifique conectividade entre containers:**
+4. **Ver logs de erro:**
 ```bash
-# De dentro do container web, tenta pingar o banco
-docker exec -it siteacademia_web ping -c 3 db
+docker-compose logs web
+docker-compose logs db
 ```
 
-**Erro de conexão com banco de dados:**
-- Certifique-se que o Docker Desktop está rodando
-- Verifique se as portas 8080, 3306 e 8081 não estão em uso:
+**Portas em uso:**
 ```bash
+# Verifica se portas estão disponíveis
 sudo netstat -tulpn | grep -E '8080|3306|8081'
 ```
 
