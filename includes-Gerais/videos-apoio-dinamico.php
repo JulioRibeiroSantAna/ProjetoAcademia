@@ -1,131 +1,37 @@
 <?php
 /**
- * ARQUIVO: videos-apoio-dinamico.php
- * LOCALIZAÇÃO: includes-Gerais/
- * 
- * PROPÓSITO:
- * Este é o sistema completo de gerenciamento de vídeos educativos.
- * Permite adicionar, editar, excluir e visualizar vídeos de duas formas:
- * 1. URL do YouTube (embed)
- * 2. Upload de arquivo do computador (MP4, AVI, MOV, etc)
- * 
- * FUNCIONALIDADES:
- * - USUÁRIO COMUM: Apenas visualiza os vídeos
- * - ADMIN: Pode adicionar, editar e excluir vídeos
- * 
- * CATEGORIAS DISPONÍVEIS:
- * 🍽️ Receitas | 💡 Dicas | 🏃‍♂️ Exercícios | 🥗 Nutrição
- * 🧘‍♀️ Bem-estar | 💊 Suplementação | 📋 Dietas
- * ⚖️ Perda de Peso | 💪 Ganho de Massa
- * 
- * TECNOLOGIAS:
- * - PHP para lógica de backend
- * - PDO para banco de dados
- * - Bootstrap 5 para UI
- * - JavaScript para modals e validações
- * - HTML5 <video> tag para arquivos locais
- * - YouTube iframe para vídeos externos
- * 
- * ESTRUTURA DO BANCO:
- * - Tabela: videos (id, titulo, descricao, url, arquivo_video, tipo_video)
- * - Tabela: topicos (id, nome)
- * - Tabela: videos_topicos (relacionamento N:N)
+ * Sistema de Gerenciamento de Vídeos Educativos
+ * Permite upload de vídeos (até 500MB) ou links do YouTube
+ * Suporta múltiplas categorias e filtros
  */
 
-// Garante que a sessão está iniciada
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Inclui a conexão com o banco de dados
 require_once __DIR__ . '/../db_connection.php';
 
-/**
- * VERIFICAÇÃO DE PERMISSÃO
- * 
- * Determina se o usuário logado é administrador.
- * Apenas admins podem adicionar, editar e excluir vídeos.
- * Usuários comuns só visualizam.
- */
 $is_admin = (isset($_SESSION['tipo_usuario']) && $_SESSION['tipo_usuario'] === 'admin');
-
-// Variável para mensagens de feedback (sucesso ou erro)
 $msg = '';
 
-/**
- * CRIAÇÃO AUTOMÁTICA DAS TABELAS
- * 
- * Estas queries criam as tabelas necessárias se elas não existirem.
- * Isso é útil quando rodamos o sistema pela primeira vez.
- * 
- * CREATE TABLE IF NOT EXISTS: só cria se não existir
- * 
- * POR QUE 3 TABELAS?
- * Um vídeo pode ter várias categorias e uma categoria pode ter vários vídeos.
- * Isso se chama relacionamento N:N (muitos pra muitos).
- * A tabela videos_topicos faz essa ponte.
- */
-
-/**
- * TABELA: videos
- * 
- * Armazena as informações principais de cada vídeo.
- * 
- * CAMPOS:
- * - id_video: Identificador único (chave primária)
- * - titulo: Nome do vídeo (ex: "Como fazer suco detox")
- * - descricao: Explicação do conteúdo
- * - url: Link do YouTube embed (vazio se for arquivo)
- * - arquivo_video: Nome do arquivo local (NULL se for YouTube)
- * - tipo_video: 'url' ou 'arquivo'
- * - data_upload: Data/hora que foi adicionado
- * - id_nutricionista: Quem adicionou (por enquanto sempre 1)
- */
+// Criação das tabelas se não existirem
 $pdo->exec("CREATE TABLE IF NOT EXISTS videos (
     id_video INT AUTO_INCREMENT PRIMARY KEY,
     titulo VARCHAR(200) NOT NULL,
     descricao TEXT NOT NULL,
     url VARCHAR(255) NOT NULL,
     arquivo_video VARCHAR(255) DEFAULT NULL,
+    thumbnail_video VARCHAR(255) DEFAULT NULL,
     tipo_video ENUM('url', 'arquivo') DEFAULT 'url',
     data_upload DATETIME DEFAULT CURRENT_TIMESTAMP,
     id_nutricionista INT DEFAULT NULL
 )");
 
-/**
- * TABELA: topicos
- * 
- * Armazena as categorias dos vídeos.
- * 
- * CAMPOS:
- * - id_topico: Identificador único
- * - nome: Nome da categoria (ex: "Receitas", "Dicas")
- * 
- * EXEMPLO DE DADOS:
- * 1 | Receitas
- * 2 | Dicas
- * 3 | Exercícios
- */
 $pdo->exec("CREATE TABLE IF NOT EXISTS topicos (
     id_topico INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(100) NOT NULL
 )");
 
-/**
- * TABELA: videos_topicos
- * 
- * Faz a ligação entre vídeos e tópicos (categorias).
- * Esta é uma tabela de relacionamento N:N.
- * 
- * EXEMPLO:
- * Se o vídeo 5 tem as categorias "Receitas" e "Nutrição":
- * videos_id | topicos_id
- * 5         | 1
- * 5         | 4
- * 
- * FOREIGN KEY: garante que só existam IDs válidos
- * ON DELETE CASCADE: se deletar o vídeo, deleta os relacionamentos também
- */
 $pdo->exec("CREATE TABLE IF NOT EXISTS videos_topicos (
     videos_id INT NOT NULL,
     topicos_id INT NOT NULL,
@@ -135,107 +41,50 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS videos_topicos (
 )");
 
 /**
- * FUNÇÃO: uploadVideo()
- * 
- * PROPÓSITO:
- * Faz o upload de um arquivo de vídeo do computador do usuário pro servidor.
- * 
- * FLUXO:
- * 1. Verifica se a pasta uploads/videos/ existe (cria se não existir)
- * 2. Valida a extensão do arquivo (só aceita formatos de vídeo)
- * 3. Valida o tamanho (máximo 500MB)
- * 4. Gera um nome único pro arquivo (evita sobrescrever)
- * 5. Move o arquivo da pasta temporária pra uploads/videos/
- * 6. Retorna sucesso (nome do arquivo) ou erro
- * 
- * EXTENSÕES ACEITAS:
- * MP4, AVI, MOV, WMV, FLV, WEBM, MKV
- * 
- * POR QUE NOME ÚNICO?
- * Se 2 usuários fizerem upload de "video.mp4" ao mesmo tempo,
- * um arquivo sobrescreveria o outro. O nome único evita isso.
- * 
- * FORMATO DO NOME: uniqid_timestamp.extensao
- * Exemplo: 61a5f8c3d4e21_1638284547.mp4
- * 
- * @param array $file - Array $_FILES['video_file']
- * @return array - ['sucesso' => 'nome_arquivo.mp4'] ou ['erro' => 'mensagem']
+ * Upload de arquivo de vídeo (até 500MB)
+ * Suporta: MP4, AVI, MOV, WMV, FLV, WEBM, MKV
  */
 function uploadVideo($file) {
-    // Define o diretório onde os vídeos serão salvos
-    // __DIR__ retorna o diretório atual (includes-Gerais)
-    // ../ volta pra raiz, então fica: raiz/uploads/videos/
     $diretorio = __DIR__ . '/../uploads/videos/';
     
-    // Verifica se a pasta existe, se não existir, cria
-    // 0777: permissão total (ler, escrever, executar)
-    // true: cria subpastas recursivamente se necessário
     if (!is_dir($diretorio)) {
         mkdir($diretorio, 0777, true);
     }
     
-    // Lista de extensões de vídeo que aceitamos
     $extensoes_permitidas = ['mp4', 'avi', 'mov', 'wmv', 'flv', 'webm', 'mkv'];
-    
-    // Pega a extensão do arquivo enviado
-    // pathinfo extrai partes do caminho/nome do arquivo
-    // PATHINFO_EXTENSION retorna só a extensão
-    // strtolower converte pra minúscula (MP4 vira mp4)
     $extensao = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
     
-    // Verifica se a extensão está na lista permitida
-    // in_array retorna true se o valor existe no array
     if (!in_array($extensao, $extensoes_permitidas)) {
-        // implode junta array em string: mp4, avi, mov...
         return ['erro' => 'Formato de vídeo não permitido! Use: ' . implode(', ', $extensoes_permitidas)];
     }
     
-    // Define o tamanho máximo do arquivo: 500MB
-    // 1 MB = 1024 KB
-    // 1 KB = 1024 bytes
-    // Então: 500 * 1024 * 1024 = 524.288.000 bytes
-    $tamanho_maximo = 500 * 1024 * 1024;
+    $tamanho_maximo = 500 * 1024 * 1024; // 500MB
     
-    // Verifica se o arquivo é maior que o limite
-    // $file['size'] retorna o tamanho em bytes
     if ($file['size'] > $tamanho_maximo) {
         return ['erro' => 'O vídeo deve ter no máximo 500MB!'];
     }
     
-    // Gera um nome único pro arquivo
-    // uniqid() gera um ID único baseado no tempo em microsegundos
-    // time() adiciona o timestamp atual (segundos desde 1970)
-    // Resultado: 61a5f8c3d4e21_1638284547.mp4
     $nome_unico = uniqid() . '_' . time() . '.' . $extensao;
-    
-    // Caminho completo onde o arquivo será salvo
     $caminho_completo = $diretorio . $nome_unico;
     
-    // Move o arquivo da pasta temporária pro destino final
-    // $file['tmp_name']: local temporário onde PHP salvou o upload
-    // move_uploaded_file: função segura pra mover uploads
     if (move_uploaded_file($file['tmp_name'], $caminho_completo)) {
-        // SUCESSO! Retorna o nome do arquivo
         return ['sucesso' => $nome_unico];
     } else {
-        // FALHA ao mover o arquivo
         return ['erro' => 'Falha ao fazer upload do vídeo!'];
     }
 }
 
-// Processa formulário (só admin pode)
+// Processa formulário (só admin)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_admin) {
     $acao = $_POST['acao'] ?? '';
     
-    // AÇÃO: Adicionar novo vídeo
     if ($acao === 'adicionar') {
         $titulo = trim($_POST['titulo'] ?? '');
         $url = trim($_POST['url'] ?? '');
         $descricao = trim($_POST['descricao'] ?? '');
         $categoria = $_POST['categoria'] ?? '';
-        $tipo_video = $_POST['tipo_video'] ?? 'url'; // 'url' ou 'arquivo'
+        $tipo_video = $_POST['tipo_video'] ?? 'url';
         
-        // Valida campos obrigatórios
         if (!$titulo || !$descricao || !$categoria) {
             $msg = '❌ Título, descrição e categoria são obrigatórios!';
         } else {
@@ -243,7 +92,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_admin) {
             $thumbnail_video = null;
             $url_final = $url;
             
-            // UPLOAD DE THUMBNAIL (se houver)
+            /** Upload de thumbnail para vídeos locais (max 5MB) */
             if (isset($_FILES['thumbnail_file']) && $_FILES['thumbnail_file']['error'] === UPLOAD_ERR_OK) {
                 $thumb_file = $_FILES['thumbnail_file'];
                 $extensoes_thumb = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
@@ -251,13 +100,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_admin) {
                 
                 if (!in_array($extensao_thumb, $extensoes_thumb)) {
                     $msg = '❌ Formato de imagem inválido! Use: JPG, PNG, GIF ou WEBP';
-                } elseif ($thumb_file['size'] > 5 * 1024 * 1024) { // Max 5MB para thumbnail
+                } elseif ($thumb_file['size'] > 5 * 1024 * 1024) {
                     $msg = '❌ A capa deve ter no máximo 5MB!';
                 } else {
                     $nome_thumb = uniqid() . '_' . time() . '.' . $extensao_thumb;
                     $destino_thumb = __DIR__ . '/../uploads/videos/thumbnails/' . $nome_thumb;
                     
-                    // Cria diretório se não existir
                     if (!file_exists(__DIR__ . '/../uploads/videos/thumbnails/')) {
                         mkdir(__DIR__ . '/../uploads/videos/thumbnails/', 0777, true);
                     }
@@ -268,17 +116,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_admin) {
                 }
             }
             
-            // OPÇÃO 1: Upload de arquivo do PC
             if (!$msg && $tipo_video === 'arquivo' && isset($_FILES['video_file']) && $_FILES['video_file']['error'] === UPLOAD_ERR_OK) {
                 $resultado = uploadVideo($_FILES['video_file']);
                 if (isset($resultado['erro'])) {
                     $msg = '❌ ' . $resultado['erro'];
                 } else {
                     $arquivo_video = $resultado['sucesso'];
-                    $url_final = ''; // URL vazia para vídeos locais
+                    $url_final = '';
                 }
             } 
-            // OPÇÃO 2: URL do YouTube
             elseif (!$msg && $tipo_video === 'url') {
                 if (!$url) {
                     $msg = '❌ URL do YouTube é obrigatória!';
@@ -287,15 +133,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_admin) {
                 } elseif (strpos($url, 'youtube.com') === false && strpos($url, 'youtu.be') === false) {
                     $msg = '❌ Por favor, use apenas links do YouTube!';
                 } else {
-                    // Converte URL normal do YouTube pra formato embed
-                    // youtube.com/watch?v=ABC123 → youtube.com/embed/ABC123
+                    /** Converte URL do YouTube para formato embed */
                     if (strpos($url, 'youtube.com/watch') !== false) {
                         preg_match('/[?&]v=([^&]+)/', $url, $matches);
                         if (isset($matches[1])) {
                             $url_final = 'https://www.youtube.com/embed/' . $matches[1];
                         }
                     } elseif (strpos($url, 'youtu.be/') !== false) {
-                        // youtu.be/ABC123 → youtube.com/embed/ABC123
                         $video_id = substr($url, strpos($url, 'youtu.be/') + 9);
                         $video_id = strtok($video_id, '?');
                         $url_final = 'https://www.youtube.com/embed/' . $video_id;
@@ -303,30 +147,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_admin) {
                 }
             }
             
-            // Se passou nas validações, salva no banco
             if (!isset($msg) || strpos($msg, '❌') === false) {
                 try {
-                    // Insere vídeo na tabela videos
                     $stmt = $pdo->prepare("INSERT INTO videos (titulo, descricao, url, arquivo_video, thumbnail_video, tipo_video, id_nutricionista) VALUES (?, ?, ?, ?, ?, ?, ?)");
                     $stmt->execute([$titulo, $descricao, $url_final, $arquivo_video, $thumbnail_video, $tipo_video, 1]);
                     $video_id = $pdo->lastInsertId();
                 
-                // Verifica se a categoria já existe
                 $stmt = $pdo->prepare("SELECT id_topico FROM topicos WHERE nome = ?");
                 $stmt->execute([$categoria]);
                 $topico = $stmt->fetch();
                 
                 if (!$topico) {
-                    // Categoria nova, cria ela
                     $stmt = $pdo->prepare("INSERT INTO topicos (nome) VALUES (?)");
                     $stmt->execute([$categoria]);
                     $topico_id = $pdo->lastInsertId();
                 } else {
-                    // Categoria já existe, usa ela
                     $topico_id = $topico['id_topico'];
                 }
                 
-                // Liga o vídeo com a categoria (tabela ponte)
                 $stmt = $pdo->prepare("INSERT INTO videos_topicos (videos_id, topicos_id) VALUES (?, ?)");
                 $stmt->execute([$video_id, $topico_id]);
                 
@@ -348,17 +186,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_admin) {
             $msg = '❌ Todos os campos são obrigatórios!';
         } else {
             try {
-                // Atualizar informações do vídeo (sem alterar url/arquivo)
                 $stmt = $pdo->prepare("UPDATE videos SET titulo = ?, descricao = ? WHERE id_video = ?");
                 $stmt->execute([$titulo, $descricao, $video_id]);
                 
-                // Atualizar categoria
-                // Buscar tópico atual
                 $stmt = $pdo->prepare("SELECT topicos_id FROM videos_topicos WHERE videos_id = ?");
                 $stmt->execute([$video_id]);
                 $topico_atual = $stmt->fetch();
                 
-                // Buscar ou criar novo tópico
                 $stmt = $pdo->prepare("SELECT id_topico FROM topicos WHERE nome = ?");
                 $stmt->execute([$categoria]);
                 $novo_topico = $stmt->fetch();
@@ -390,20 +224,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_admin) {
     if ($acao === 'excluir') {
         $id = $_POST['video_id'] ?? 0;
         try {
-            // Buscar dados do vídeo antes de excluir
             $stmt = $pdo->prepare("SELECT arquivo_video, thumbnail_video FROM videos WHERE id_video = ?");
             $stmt->execute([$id]);
             $video = $stmt->fetch();
             
-            // Excluir associações primeiro
             $stmt = $pdo->prepare("DELETE FROM videos_topicos WHERE videos_id = ?");
             $stmt->execute([$id]);
             
-            // Excluir vídeo
             $stmt = $pdo->prepare("DELETE FROM videos WHERE id_video = ?");
             $stmt->execute([$id]);
             
-            // Se tinha arquivo físico, excluir também
             if ($video && $video['arquivo_video']) {
                 $caminho_arquivo = __DIR__ . '/../uploads/videos/' . $video['arquivo_video'];
                 if (file_exists($caminho_arquivo)) {
@@ -411,7 +241,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_admin) {
                 }
             }
             
-            // Se tinha thumbnail, excluir também
             if ($video && $video['thumbnail_video']) {
                 $caminho_thumb = __DIR__ . '/../uploads/videos/thumbnails/' . $video['thumbnail_video'];
                 if (file_exists($caminho_thumb)) {

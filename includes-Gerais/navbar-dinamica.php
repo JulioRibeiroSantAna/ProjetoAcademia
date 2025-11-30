@@ -1,80 +1,31 @@
 <?php
 /**
- * ARQUIVO: navbar-dinamica.php
- * LOCALIZAÇÃO: includes-Gerais/
- * 
- * PROPÓSITO:
- * Esta é a barra de navegação (menu do topo) do site.
- * O nome "dinâmica" significa que ela MUDA dependendo de quem está acessando.
- * 
- * 3 VERSÕES DA NAVBAR:
- * 1. VISITANTE (não logado): Mostra links pro index + botão "Entrar"
- * 2. USUÁRIO COMUM (logado): Mostra menu com Vídeos, Perfil, Agendamentos
- * 3. ADMIN (logado): Mostra menu + opção "Gerenciar Profissionais"
- * 
- * COMO FUNCIONA:
- * - Verifica $_SESSION['tipo_usuario']
- * - Monta URLs diferentes pra cada tipo
- * - Cria menu dropdown personalizado
- * 
- * TECNOLOGIAS:
- * - PHP para lógica condicional
- * - Bootstrap 5 para navbar responsiva
- * - JavaScript para submenus
- * 
- * USADA EM:
- * - TODAS as páginas do site (include no topo)
+ * Navbar Dinâmica - Menu adaptado por tipo de usuário
+ * - Visitante: Links básicos + botão Entrar
+ * - Usuário: Menu com vídeos, perfil e agendamentos
+ * - Admin: Menu completo + gerenciamento
  */
 
-/**
- * VERIFICAÇÃO DE SESSÃO
- * 
- * Garante que a sessão está iniciada antes de tentar ler $_SESSION.
- * session_status() retorna o estado atual da sessão.
- * PHP_SESSION_NONE significa que a sessão NÃO foi iniciada ainda.
- */
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-/**
- * INCLUIR CONFIG.PHP SE NECESSÁRIO
- * 
- * A constante BASE_URL é definida no config.php.
- * Se ela não existe, significa que config.php não foi incluído.
- * Nesse caso, incluímos aqui.
- * 
- * __DIR__ retorna o diretório atual (includes-Gerais)
- * ../ volta um nível (pra raiz do projeto)
- */
 if (!defined('BASE_URL')) {
     require_once __DIR__ . '/../config.php';
 }
 
-/**
- * DEFINIR URLs PADRÃO (PARA VISITANTES)
- * 
- * Quando o usuário NÃO está logado, os links apontam pro index.php.
- * As âncoras (#sobre, #profissionais) fazem scroll pra seção certa.
- * 
- * EXEMPLO:
- * Visitante clica em "Sobre" → vai pra index.php#sobre → scroll até a seção
- */
 $url_inicio = BASE_URL . "/index.php";
 $url_sobre = BASE_URL . "/index.php#sobre";
 $url_profissionais = BASE_URL . "/index.php#profissionais";
 $url_fale_conosco = BASE_URL . "/index.php#footer";
 
-// Ajusta URLs se o usuário estiver logado
 if (isset($_SESSION['tipo_usuario']) && $_SESSION['tipo_usuario'] !== '') {
     if ($_SESSION['tipo_usuario'] === 'admin') {
-        // Admin: usa páginas da pasta AdmLogado
         $url_inicio = BASE_URL . "/AdmLogado/logado-Adm.php";
         $url_sobre = BASE_URL . "/AdmLogado/logado-Adm.php#sobre";
         $url_profissionais = BASE_URL . "/AdmLogado/logado-Adm.php#profissionais";
         $url_fale_conosco = BASE_URL . "/AdmLogado/logado-Adm.php#footer";
     } else if ($_SESSION['tipo_usuario'] === 'usuario') {
-        // Usuário comum: usa páginas da pasta UsuarioLogado
         $url_inicio = BASE_URL . "/UsuarioLogado/logado.php";
         $url_sobre = BASE_URL . "/UsuarioLogado/logado.php#sobre";
         $url_profissionais = BASE_URL . "/UsuarioLogado/logado.php#profissionais";
@@ -82,14 +33,12 @@ if (isset($_SESSION['tipo_usuario']) && $_SESSION['tipo_usuario'] !== '') {
     }
 }
 
-// Inicializa variáveis para o menu dropdown
 $menu_videos_apoio = "";
 $menu_profissionais = "";
 $menu_perfil = "";
 $menu_logout = "";
 $menu_dropdown = "";
 
-// URLs dinâmicas baseadas no tipo de usuário
 if (isset($_SESSION['tipo_usuario']) && $_SESSION['tipo_usuario'] !== '') {
     if ($_SESSION['tipo_usuario'] === 'admin') {
         $url_meus_agendamentos = BASE_URL . "/AdmLogado/meus-agendamentos-Adm.php";
@@ -106,11 +55,8 @@ if (isset($_SESSION['tipo_usuario']) && $_SESSION['tipo_usuario'] !== '') {
     }
 }
 
-// Verifica se o usuário está logado para construir o menu dropdown
 if (isset($_SESSION['tipo_usuario']) && $_SESSION['tipo_usuario'] !== '') {
-    // URLs para usuários logados
     if ($_SESSION['tipo_usuario'] === 'admin') {
-        // Menu dropdown para admin
         $menu_videos_apoio = '<li><a class="dropdown-item" href="' . $url_videos_apoio . '">Vídeos de Apoio / Gerenciamento</a></li>';
         $menu_profissionais = '
         <li class="dropdown-submenu">
@@ -131,7 +77,6 @@ if (isset($_SESSION['tipo_usuario']) && $_SESSION['tipo_usuario'] !== '') {
         </li>';
         
     } else if ($_SESSION['tipo_usuario'] === 'usuario') {
-        // Menu dropdown para usuário comum
         $menu_videos_apoio = '<li><a class="dropdown-item" href="' . $url_videos_apoio . '">Vídeos de Apoio</a></li>';
         $menu_profissionais = '
         <li class="dropdown-submenu">
@@ -151,12 +96,10 @@ if (isset($_SESSION['tipo_usuario']) && $_SESSION['tipo_usuario'] !== '') {
         </li>';
     }
     
-    // Logout é comum para ambos os tipos de usuários logados
     $menu_logout = '
     <li><hr class="dropdown-divider"></li>
     <li><a class="dropdown-item text-danger" href="' . BASE_URL . '/Autenticacao/logout.php">Sair</a></li>';
     
-    // LÓGICA CORRIGIDA DO APELIDO
     $nome_exibicao = 'Menu';
     if (isset($_SESSION['apelido_usuario']) && !empty(trim($_SESSION['apelido_usuario']))) {
         $nome_exibicao = $_SESSION['apelido_usuario'];
@@ -177,7 +120,6 @@ if (isset($_SESSION['tipo_usuario']) && $_SESSION['tipo_usuario'] !== '') {
         </ul>
     </div>';
 } else {
-    // Botão de login para usuários não logados
     $menu_dropdown = '
     <a href="' . BASE_URL . '/Autenticacao/login.php" class="btn btn-light">
         <i class="bi bi-person-circle me-1"></i> Entrar
@@ -251,7 +193,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
-  // Fechar menu ao clicar em um item (para mobile)
   document.querySelectorAll('.dropdown-menu .dropdown-item').forEach(function(item) {
     item.addEventListener('click', function() {
       var navbarCollapse = document.getElementById('navbarContent');

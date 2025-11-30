@@ -1,40 +1,32 @@
 <?php
 /**
- * ARQUIVO: validacao.php
- * Funções para validar dados dos formulários
+ * Funções de validação de formulários
  */
 
-// Valida apelido (2 a 30 caracteres)
 function validarApelido($apelido) {
     $apelido = trim($apelido);
     return strlen($apelido) >= 2 && strlen($apelido) <= 30;
 }
 
-// Valida formato de email
 function validarEmail($email) {
     return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
 }
 
-// Valida senha (8 a 14 caracteres)
 function validarSenha($senha) {
     return strlen($senha) >= 8 && strlen($senha) <= 14;
 }
 
-// Valida nome completo (2 a 100 caracteres)
 function validarNome($nome) {
     $nome = trim($nome);
     return strlen($nome) >= 2 && strlen($nome) <= 100;
 }
 
-// Valida telefone (10 a 15 dígitos)
 function validarTelefone($telefone) {
-    // Remove tudo que não é número
     $telefone = preg_replace('/\D/', '', $telefone);
     return strlen($telefone) >= 10 && strlen($telefone) <= 15;
 }
 
-// Valida todos os campos do cadastro
-// Retorna array com erros ou array vazio se tudo ok
+/** Valida todos os campos do cadastro */
 function validarCadastro($nome, $apelido, $email, $senha, $confirmSenha, $telefone = '') {
     $erros = [];
     
@@ -66,7 +58,6 @@ function validarCadastro($nome, $apelido, $email, $senha, $confirmSenha, $telefo
 }
 
 // Limpa dados do formulário (proteção contra XSS)
-// XSS = ataque com código JavaScript malicioso
 function sanitizarEntrada($dados) {
     if (is_array($dados)) {
         $resultado = [];
@@ -76,7 +67,6 @@ function sanitizarEntrada($dados) {
         return $resultado;
     }
     
-    // Converte caracteres especiais: < vira &lt;
     return htmlspecialchars(trim((string)$dados), ENT_QUOTES, 'UTF-8');
 }
 ?>

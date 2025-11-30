@@ -1,9 +1,7 @@
 <?php
 /**
- * ARQUIVO: profissionais-gerenciamento.php
- * CRUD completo de profissionais (só admin)
- * Adicionar, editar, excluir profissionais
- * Upload de foto do profissional
+ * Gerenciamento de Profissionais (CRUD - Admin)
+ * Upload de foto, validação de telefone único
  */
 
 if (session_status() === PHP_SESSION_NONE) {
@@ -15,7 +13,6 @@ require_once __DIR__ . '/../db_connection.php';
 $is_admin = ($_SESSION['tipo_usuario'] === 'admin');
 $msg = '';
 
-// Cria tabela se não existir
 $pdo->exec("CREATE TABLE IF NOT EXISTS profissionais (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(100) NOT NULL,
@@ -28,24 +25,19 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS profissionais (
 )");
 
 /**
- * Função para upload de foto do profissional
- * Aceita: JPG, PNG, GIF, WEBP (máx 5MB)
- * Salva em: uploads/profissionais/
+ * Upload de foto profissional (JPG, PNG, GIF, WEBP - max 5MB)
  */
 function uploadFotoProfissional($file) {
     $upload_dir = __DIR__ . '/../uploads/profissionais/';
     
-    // Cria pasta se não existir
     if (!is_dir($upload_dir)) {
         mkdir($upload_dir, 0755, true);
     }
     
-    // Verifica se arquivo foi enviado
     if (!isset($file['error']) || $file['error'] !== UPLOAD_ERR_OK) {
         return ['success' => false, 'message' => 'Erro no upload do arquivo'];
     }
     
-    // Valida tipo (só imagens)
     $allowed_types = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/webp'];
     $file_type = mime_content_type($file['tmp_name']);
     
@@ -53,17 +45,14 @@ function uploadFotoProfissional($file) {
         return ['success' => false, 'message' => 'Tipo de arquivo não permitido. Use JPG, PNG, GIF ou WEBP'];
     }
     
-    // Valida tamanho (máx 5MB)
     if ($file['size'] > 5 * 1024 * 1024) {
         return ['success' => false, 'message' => 'Arquivo muito grande. Máximo 5MB'];
     }
     
-    // Gera nome único
     $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
     $filename = 'prof_' . uniqid() . '_' . time() . '.' . $extension;
     $filepath = $upload_dir . $filename;
     
-    // Move arquivo pra pasta
     if (move_uploaded_file($file['tmp_name'], $filepath)) {
         return ['success' => true, 'filename' => 'uploads/profissionais/' . $filename];
     }
@@ -71,7 +60,6 @@ function uploadFotoProfissional($file) {
     return ['success' => false, 'message' => 'Erro ao salvar arquivo'];
 }
 
-// Se enviou formulário
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_admin) {
     $acao = $_POST['acao'] ?? '';
     
@@ -83,7 +71,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_admin) {
         $descricao = trim($_POST['descricao'] ?? '');
         $foto = null;
         
-        // Processar upload de foto
         if (isset($_FILES['foto']) && $_FILES['foto']['error'] !== UPLOAD_ERR_NO_FILE) {
             $upload_result = uploadFotoProfissional($_FILES['foto']);
             if ($upload_result['success']) {
@@ -95,7 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_admin) {
         
         if ($nome && $especialidade && $descricao && !$msg) {
             try {
-                // Verificar se o email já existe
+                /** Validação de email único */
                 if (!empty($email)) {
                     $stmt = $pdo->prepare('SELECT id FROM profissionais WHERE email = ?');
                     $stmt->execute([$email]);
@@ -104,7 +91,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_admin) {
                     }
                 }
                 
-                // Verificar se o telefone já existe
+                /** Validação de telefone único */
                 if (!empty($telefone) && !$msg) {
                     $stmt = $pdo->prepare('SELECT id FROM profissionais WHERE telefone = ?');
                     $stmt->execute([$telefone]);
