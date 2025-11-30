@@ -1,8 +1,6 @@
 <?php
 /**
  * Sistema de Gerenciamento de Vídeos Educativos
- * Permite upload de vídeos (até 500MB) ou links do YouTube
- * Suporta múltiplas categorias e filtros
  */
 
 if (session_status() === PHP_SESSION_NONE) {
@@ -40,10 +38,6 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS videos_topicos (
     FOREIGN KEY (topicos_id) REFERENCES topicos(id_topico) ON DELETE CASCADE
 )");
 
-/**
- * Upload de arquivo de vídeo (até 500MB)
- * Suporta: MP4, AVI, MOV, WMV, FLV, WEBM, MKV
- */
 function uploadVideo($file) {
     $diretorio = __DIR__ . '/../uploads/videos/';
     
@@ -92,7 +86,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_admin) {
             $thumbnail_video = null;
             $url_final = $url;
             
-            /** Upload de thumbnail para vídeos locais (max 5MB) */
             if (isset($_FILES['thumbnail_file']) && $_FILES['thumbnail_file']['error'] === UPLOAD_ERR_OK) {
                 $thumb_file = $_FILES['thumbnail_file'];
                 $extensoes_thumb = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
@@ -133,7 +126,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_admin) {
                 } elseif (strpos($url, 'youtube.com') === false && strpos($url, 'youtu.be') === false) {
                     $msg = '❌ Por favor, use apenas links do YouTube!';
                 } else {
-                    /** Converte URL do YouTube para formato embed */
                     if (strpos($url, 'youtube.com/watch') !== false) {
                         preg_match('/[?&]v=([^&]+)/', $url, $matches);
                         if (isset($matches[1])) {
@@ -205,7 +197,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_admin) {
                     $novo_topico_id = $novo_topico['id_topico'];
                 }
                 
-                // Atualizar associação
                 if ($topico_atual) {
                     $stmt = $pdo->prepare("UPDATE videos_topicos SET topicos_id = ? WHERE videos_id = ?");
                     $stmt->execute([$novo_topico_id, $video_id]);
@@ -259,9 +250,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_admin) {
 $filtro_categorias = isset($_GET['categorias']) ? explode(',', $_GET['categorias']) : [];
 $filtro_busca = $_GET['busca'] ?? '';
 
-// Buscar vídeos com filtros aplicados
 try {
-    // Monta query SQL base
     $sql = "
         SELECT DISTINCT v.*, GROUP_CONCAT(t.nome) as categorias
         FROM videos v 
@@ -272,14 +261,12 @@ try {
     
     $params = [];
     
-    // Se escolheu categorias, filtra por elas (OR logic)
     if (!empty($filtro_categorias)) {
         $placeholders = implode(',', array_fill(0, count($filtro_categorias), '?'));
         $sql .= " AND t.nome IN ($placeholders)";
         $params = array_merge($params, $filtro_categorias);
     }
     
-    // Se digitou algo na pesquisa, busca no título ou descrição
     if ($filtro_busca) {
         $sql .= " AND (v.titulo LIKE ? OR v.descricao LIKE ?)";
         $params[] = "%$filtro_busca%";
@@ -295,7 +282,6 @@ try {
     $videos = [];
 }
 
-// Busca todas as categorias para montar o select
 try {
     $stmt = $pdo->query("SELECT DISTINCT nome FROM topicos ORDER BY nome");
     $categorias = $stmt->fetchAll(PDO::FETCH_COLUMN);

@@ -8,10 +8,9 @@
 require_once '../config.php';
 
 // Verifica se está logado como usuário
-// Se não estiver, redireciona pro login
 if (!isset($_SESSION['tipo_usuario']) || $_SESSION['tipo_usuario'] !== 'usuario') {
     header('Location: ../Autenticacao/login.php');
-    exit();
+    exit;
 }
 ?>
 

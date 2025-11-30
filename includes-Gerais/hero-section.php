@@ -1,9 +1,6 @@
 <?php
 /**
- * ARQUIVO: hero-section.php
- * Banner principal que muda conforme tipo de usuário
- * Visitante: "PREPARE-SE PARA MUDAR"
- * Logado: "Bem-vindo, [Nome]"
+ * Banner principal
  */
 
 if (session_status() === PHP_SESSION_NONE) {
@@ -14,7 +11,6 @@ if (!defined('BASE_URL')) {
     require_once __DIR__ . '/../config.php';
 }
 
-// Valores padrão (para visitante)
 $titulo_principal = "PREPARE-SE PARA MUDAR";
 $subtitulo = "PARA MELHOR.";
 $botao_principal_texto = "Entrar na Plataforma";
@@ -22,10 +18,8 @@ $botao_principal_url = BASE_URL . "/Autenticacao/login.php";
 $botao_secundario_texto = "Saiba Mais";
 $botao_secundario_url = "#sobre";
 
-// Se está logado, personaliza
 if (isset($_SESSION['tipo_usuario']) && $_SESSION['tipo_usuario'] !== '') {
 
-    // Usa apelido se tiver, senão usa nome completo
     $nome_usuario = '';
     if (isset($_SESSION['apelido_usuario']) && !empty(trim($_SESSION['apelido_usuario']))) {
         $nome_usuario = $_SESSION['apelido_usuario'];
@@ -33,7 +27,6 @@ if (isset($_SESSION['tipo_usuario']) && $_SESSION['tipo_usuario'] !== '') {
         $nome_usuario = $_SESSION['nome_usuario'];
     }
 
-    // Textos e botões diferentes por tipo
     if ($_SESSION['tipo_usuario'] === 'admin') {
         $titulo_principal = "Bem-vindo(a), " . htmlspecialchars($nome_usuario);
         $subtitulo = "Área do Administrador";

@@ -1,10 +1,6 @@
 <?php
 /**
- * ARQUIVO: meus-agendamentos-dinamico.php
  * Lista agendamentos do usuário
- * Admin vê TODOS os agendamentos
- * Usuário vê apenas os seus
- * Permite editar data/hora e excluir
  */
 
 if (session_status() === PHP_SESSION_NONE) {
@@ -17,20 +13,16 @@ $is_admin = (isset($_SESSION['tipo_usuario']) && $_SESSION['tipo_usuario'] === '
 $id_usuario = $_SESSION['id_usuario'] ?? null;
 $msg = '';
 
-// Processa ações: excluir ou editar
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $acao = $_POST['acao'] ?? '';
     
-    // Ação: Excluir agendamento
     if ($acao === 'excluir') {
         $id_agendamento = $_POST['id_agendamento'] ?? 0;
         try {
             if ($is_admin) {
-                // Admin pode excluir qualquer agendamento
                 $stmt = $pdo->prepare("DELETE FROM agendamentos WHERE id_agendamento = ?");
                 $stmt->execute([$id_agendamento]);
             } else {
-                // Usuário só pode excluir os próprios
                 $stmt = $pdo->prepare("DELETE FROM agendamentos WHERE id_agendamento = ? AND id_usuario = ?");
                 $stmt->execute([$id_agendamento, $id_usuario]);
             }
@@ -40,7 +32,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
     
-    // Ação: Editar data/hora do agendamento
     if ($acao === 'editar') {
         $id_agendamento = $_POST['id_agendamento'] ?? 0;
         $nova_data = $_POST['nova_data'] ?? '';
@@ -51,11 +42,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             try {
                 if ($is_admin) {
-                    // Admin pode editar qualquer
                     $stmt = $pdo->prepare("UPDATE agendamentos SET data_hora = ? WHERE id_agendamento = ?");
                     $stmt->execute([$nova_data_hora, $id_agendamento]);
                 } else {
-                    // Usuário só pode editar os próprios
                     $stmt = $pdo->prepare("UPDATE agendamentos SET data_hora = ? WHERE id_agendamento = ? AND id_usuario = ?");
                     $stmt->execute([$nova_data_hora, $id_agendamento, $id_usuario]);
                 }
@@ -67,12 +56,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Buscar agendamentos
 $agendamentos = [];
 if ($id_usuario) {
     try {
         if ($is_admin) {
-            // Admin vê todos os agendamentos
             $stmt = $pdo->query("
                 SELECT a.*, u.nome as usuario_nome, p.nome as profissional_nome, p.especialidade
                 FROM agendamentos a
@@ -81,7 +68,6 @@ if ($id_usuario) {
                 ORDER BY a.data_hora DESC
             ");
         } else {
-            // Usuário vê apenas seus agendamentos
             $stmt = $pdo->prepare("
                 SELECT a.*, p.nome as profissional_nome, p.especialidade
                 FROM agendamentos a
@@ -123,16 +109,16 @@ $link_agendamento = $is_admin ? '../AdmLogado/agendamento-Adm.php' : '../Usuario
         </div>
     <?php else: ?>
         <div class="table-responsive">
-            <table class="table mef-table">
+            <table class="table mef-table" style="color: white;">
                 <thead>
-                    <tr>
+                    <tr style="color: white;">
                         <?php if ($is_admin): ?>
-                            <th>Cliente</th>
+                            <th style="color: white;">Cliente</th>
                         <?php endif; ?>
-                        <th>Profissional</th>
-                        <th>Data</th>
-                        <th>Horário</th>
-                        <th class="text-end">Ações</th>
+                        <th style="color: white;">Profissional</th>
+                        <th style="color: white;">Data</th>
+                        <th style="color: white;">Horário</th>
+                        <th class="text-end" style="color: white;">Ações</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -142,19 +128,19 @@ $link_agendamento = $is_admin ? '../AdmLogado/agendamento-Adm.php' : '../Usuario
                         $data_formatada = $data_hora->format('d/m/Y');
                         $hora_formatada = $data_hora->format('H:i');
                         ?>
-                        <tr>
+                        <tr style="color: white;">
                             <?php if ($is_admin): ?>
-                                <td><?php echo htmlspecialchars($agendamento['usuario_nome'] ?? 'N/A'); ?></td>
+                                <td style="color: white;"><?php echo htmlspecialchars($agendamento['usuario_nome'] ?? 'N/A'); ?></td>
                             <?php endif; ?>
-                            <td>
+                            <td style="color: white;">
                                 <?php echo htmlspecialchars($agendamento['profissional_nome'] ?? 'Profissional'); ?>
                                 <?php if ($agendamento['especialidade']): ?>
-                                    <br><small class="text-muted"><?php echo htmlspecialchars($agendamento['especialidade']); ?></small>
+                                    <br><small style="color: rgba(255, 255, 255, 0.7);"><?php echo htmlspecialchars($agendamento['especialidade']); ?></small>
                                 <?php endif; ?>
                             </td>
-                            <td><?php echo $data_formatada; ?></td>
-                            <td><?php echo $hora_formatada; ?></td>
-                            <td class="text-end">
+                            <td style="color: white;"><?php echo $data_formatada; ?></td>
+                            <td style="color: white;"><?php echo $hora_formatada; ?></td>
+                            <td class="text-end" style="color: white;">
                                 <div class="btn-group">
                                     <button class="btn btn-sm btn-outline-primary" 
                                             onclick="editarAgendamento(<?php echo $agendamento['id_agendamento']; ?>, '<?php echo $data_hora->format('Y-m-d'); ?>', '<?php echo $data_hora->format('H:i'); ?>')">
@@ -177,35 +163,35 @@ $link_agendamento = $is_admin ? '../AdmLogado/agendamento-Adm.php' : '../Usuario
 <!-- Modal para editar agendamento -->
 <div class="modal fade" id="modalEditarAgendamento" tabindex="-1">
     <div class="modal-dialog">
-        <div class="modal-content">
+        <div class="modal-content" style="background: white; color: #212529;">
             <form method="POST">
-                <div class="modal-header bg-primary text-white">
+                <div class="modal-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-bottom: none;">
                     <h5 class="modal-title">Editar Agendamento</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body" style="background: white; color: #212529;">
                     <input type="hidden" name="acao" value="editar">
                     <input type="hidden" name="id_agendamento" id="edit_id_agendamento">
                     
                     <div class="mb-3">
-                        <label for="editarData" class="form-label">Nova Data</label>
-                        <input type="date" class="form-control" name="nova_data" id="editarData" min="<?php echo date('Y-m-d'); ?>" required>
+                        <label for="editarData" class="form-label" style="color: #212529 !important; font-weight: 500;">Nova Data</label>
+                        <input type="date" class="form-control" name="nova_data" id="editarData" min="<?php echo date('Y-m-d'); ?>" style="background: white !important; color: #212529 !important; border: 1px solid #ced4da;" required>
                     </div>
                     
                     <div class="mb-3">
-                        <label for="editarHora" class="form-label">Novo Horário</label>
-                        <select class="form-select" name="nova_hora" id="editarHora" required>
-                            <option value="">Selecione um horário</option>
-                            <option value="08:00">08:00</option>
-                            <option value="09:00">09:00</option>
-                            <option value="10:00">10:00</option>
-                            <option value="14:00">14:00</option>
-                            <option value="15:00">15:00</option>
-                            <option value="16:00">16:00</option>
+                        <label for="editarHora" class="form-label" style="color: #212529 !important; font-weight: 500;">Novo Horário</label>
+                        <select class="form-select" name="nova_hora" id="editarHora" style="background: white !important; color: #212529 !important; border: 1px solid #ced4da;" required>
+                            <option value="" style="color: #212529;">Selecione um horário</option>
+                            <option value="08:00" style="color: #212529;">08:00</option>
+                            <option value="09:00" style="color: #212529;">09:00</option>
+                            <option value="10:00" style="color: #212529;">10:00</option>
+                            <option value="14:00" style="color: #212529;">14:00</option>
+                            <option value="15:00" style="color: #212529;">15:00</option>
+                            <option value="16:00" style="color: #212529;">16:00</option>
                         </select>
                     </div>
                 </div>
-                <div class="modal-footer">
+                <div class="modal-footer" style="background: white; border-top: 1px solid #dee2e6;">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                     <button type="submit" class="btn btn-primary">Salvar Alterações</button>
                 </div>

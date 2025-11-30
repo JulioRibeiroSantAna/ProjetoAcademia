@@ -1,9 +1,6 @@
 <?php
 /**
- * ARQUIVO: editar-perfil-dinamico.php
  * Formulário para editar dados do perfil
- * Permite alterar: nome, apelido, email, telefone, senha
- * Funciona para admin e usuário comum
  */
 
 if (session_status() === PHP_SESSION_NONE) {
@@ -16,34 +13,29 @@ $is_admin = ($_SESSION['tipo_usuario'] === 'admin');
 $id_usuario = $_SESSION['id_usuario'];
 $msg = '';
 
-// Busca dados atuais do banco
 $stmt = $pdo->prepare('SELECT nome, apelido, email, telefone, foto FROM usuarios WHERE id_usuario = ?');
 $stmt->execute([$id_usuario]);
 $user = $stmt->fetch();
 
-// Processa formulário quando enviado
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nome = trim($_POST['nome']);
     $apelido = trim($_POST['apelido']);
     $email = trim($_POST['email']);
     $telefone = trim($_POST['telefone']);
-    $senha = $_POST['senha']; // Senha é opcional
+    $senha = $_POST['senha'];
     
     $erros = [];
     
-    // Valida campos
     if (strlen($nome) < 2) $erros[] = 'Nome muito curto';
     if (strlen($apelido) < 2) $erros[] = 'Apelido muito curto';
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) $erros[] = 'E-mail inválido';
     if ($senha && strlen($senha) < 8) $erros[] = 'Senha deve ter pelo menos 8 caracteres';
     
-    // Verifica se email já está em uso por outro usuário
     $stmt = $pdo->prepare('SELECT id_usuario FROM usuarios WHERE email = ? AND id_usuario != ?');
     $stmt->execute([$email, $id_usuario]);
     if ($stmt->fetch()) $erros[] = 'E-mail já usado por outro usuário';
     
-    // Processa upload de foto
-    $foto_path = $user['foto']; // Mantém foto atual por padrão
+    $foto_path = $user['foto'];
     if (isset($_FILES['foto']) && $_FILES['foto']['error'] === UPLOAD_ERR_OK) {
         $allowed_types = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif'];
         $file_type = $_FILES['foto']['type'];
@@ -54,7 +46,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 mkdir($upload_dir, 0777, true);
             }
             
-            // Remove foto antiga se existir
             if ($user['foto'] && file_exists(__DIR__ . '/../' . $user['foto'])) {
                 unlink(__DIR__ . '/../' . $user['foto']);
             }
@@ -72,25 +63,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (empty($erros)) {
-        // Atualiza no banco
         if ($senha) {
-            // Se digitou senha, atualiza ela também (criptografada)
             $stmt = $pdo->prepare('UPDATE usuarios SET nome = ?, apelido = ?, email = ?, telefone = ?, senha = ?, foto = ? WHERE id_usuario = ?');
             $stmt->execute([$nome, $apelido, $email, $telefone, password_hash($senha, PASSWORD_DEFAULT), $foto_path, $id_usuario]);
         } else {
-            // Se não digitou senha, mantém a antiga
             $stmt = $pdo->prepare('UPDATE usuarios SET nome = ?, apelido = ?, email = ?, telefone = ?, foto = ? WHERE id_usuario = ?');
             $stmt->execute([$nome, $apelido, $email, $telefone, $foto_path, $id_usuario]);
         }
         
-        // Atualiza sessão com novos dados
         $_SESSION['nome_usuario'] = $nome;
         $_SESSION['apelido_usuario'] = $apelido;
         $_SESSION['email_usuario'] = $email;
         $_SESSION['telefone_usuario'] = $telefone;
         $_SESSION['foto_usuario'] = $foto_path;
         
-        // Redireciona para o perfil (usando JavaScript pois já há output)
         $redirect_url = $is_admin ? '../AdmLogado/perfil-Adm.php?msg=success' : '../UsuarioLogado/perfil.php?msg=success';
         echo "<script>window.location.href = '$redirect_url';</script>";
         exit();

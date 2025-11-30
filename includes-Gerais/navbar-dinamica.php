@@ -1,9 +1,6 @@
 <?php
 /**
- * Navbar Dinâmica - Menu adaptado por tipo de usuário
- * - Visitante: Links básicos + botão Entrar
- * - Usuário: Menu com vídeos, perfil e agendamentos
- * - Admin: Menu completo + gerenciamento
+ * Navbar Dinâmica
  */
 
 if (session_status() === PHP_SESSION_NONE) {

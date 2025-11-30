@@ -1,9 +1,6 @@
 <?php
 /**
- * ARQUIVO: agendamento-dinamico.php
  * Sistema de agendamento de consultas
- * Usuário escolhe: profissional, data e hora
- * Verifica se horário está livre antes de agendar
  */
 
 if (session_status() === PHP_SESSION_NONE) {
@@ -16,39 +13,51 @@ $is_admin = (isset($_SESSION['tipo_usuario']) && $_SESSION['tipo_usuario'] === '
 $id_usuario = $_SESSION['id_usuario'] ?? null;
 $msg = '';
 
-// Só usuários logados podem agendar
 if (!$id_usuario) {
     header('Location: ../Autenticacao/login.php');
     exit();
 }
 
-// Processa formulário de agendamento
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $profissional = $_POST['profissional'] ?? '';
     $data = $_POST['data'] ?? '';
     $hora = $_POST['hora'] ?? '';
     
     if ($profissional && $data && $hora) {
-        // Junta data e hora: 2024-10-22 14:00:00
         $data_completa = $data . ' ' . $hora . ':00';
         
         try {
-            // Verifica se o horário já está ocupado
+            // Inicia transação
+            $pdo->beginTransaction();
+            
+            // Verifica se já existe agendamento
             $stmt = $pdo->prepare("SELECT COUNT(*) FROM agendamentos WHERE id_nutricionista = ? AND data_hora = ?");
             $stmt->execute([$profissional, $data_completa]);
             
             if ($stmt->fetchColumn() == 0) {
-                // Horário livre, salva agendamento
+                // Insere o agendamento
                 $stmt = $pdo->prepare("INSERT INTO agendamentos (id_nutricionista, id_usuario, data_hora) VALUES (?, ?, ?)");
-                if ($stmt->execute([$profissional, $id_usuario, $data_completa])) {
-                    $msg = 'Consulta agendada com sucesso!';
-                } else {
-                    $msg = 'Erro ao agendar consulta!';
-                }
+                $stmt->execute([$profissional, $id_usuario, $data_completa]);
+                
+                // Atualiza o status do horário para 'reservado'
+                // Marca como reservado o bloco de horário que contém o horário agendado
+                $stmt = $pdo->prepare("UPDATE horarios_profissionais 
+                    SET status = 'reservado' 
+                    WHERE id_profissional = ? 
+                    AND data_atendimento = ? 
+                    AND ? >= hora_inicio 
+                    AND ? < hora_fim 
+                    AND status = 'disponivel'");
+                $stmt->execute([$profissional, $data, $hora . ':00', $hora . ':00']);
+                
+                $pdo->commit();
+                $msg = 'Consulta agendada com sucesso!';
             } else {
+                $pdo->rollBack();
                 $msg = 'Horário já ocupado! Escolha outro horário.';
             }
         } catch (PDOException $e) {
+            $pdo->rollBack();
             $msg = 'Erro no sistema. Tente novamente.';
             error_log("Erro agendamento: " . $e->getMessage());
         }
@@ -57,7 +66,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Buscar profissionais disponíveis
 try {
     $stmt = $pdo->query("SELECT * FROM profissionais ORDER BY nome");
     $profissionais = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -65,7 +73,6 @@ try {
     $profissionais = [];
 }
 
-// Buscar dados do usuário
 $usuario = [];
 try {
     $stmt = $pdo->prepare("SELECT nome, email, telefone FROM usuarios WHERE id_usuario = ?");
@@ -106,7 +113,7 @@ try {
         <h3 class="mb-3">Agendamento</h3>
         <div class="mb-3">
             <label class="form-label">Profissional</label>
-            <select class="form-select" name="profissional" required>
+            <select class="form-select" name="profissional" id="select_profissional" onchange="carregarHorariosProfissional()" required>
                 <option value="">Escolha um profissional</option>
                 <?php foreach ($profissionais as $prof): ?>
                     <option value="<?php echo $prof['id']; ?>">
@@ -116,22 +123,210 @@ try {
             </select>
         </div>
         <div class="mb-3">
-            <label class="form-label">Data</label>
-            <input type="date" class="form-control" name="data" min="<?php echo date('Y-m-d'); ?>" required>
+            <label class="form-label">Data da Consulta</label>
+            <input type="hidden" name="data" id="select_data_hidden">
+            <div id="calendario_container" style="display: none;">
+                <div id="calendario_custom" class="border rounded p-3" style="background: #f8f9fa;"></div>
+                <small id="data_selecionada" class="text-muted mt-2 d-block"></small>
+            </div>
+            <div id="msg_sem_profissional" class="alert alert-info">
+                <i class="bi bi-info-circle"></i> Selecione um profissional primeiro
+            </div>
         </div>
         <div class="mb-3">
-            <label class="form-label">Horário</label>
-            <select class="form-select" name="hora" required>
-                <option value="">Escolha um horário</option>
-                <option value="08:00">08:00</option>
-                <option value="09:00">09:00</option>
-                <option value="10:00">10:00</option>
-                <option value="14:00">14:00</option>
-                <option value="15:00">15:00</option>
-                <option value="16:00">16:00</option>
+            <label class="form-label text-dark">Horário</label>
+            <select class="form-select" name="hora" id="select_hora" required>
+                <option value="">Primeiro selecione o profissional e a data</option>
             </select>
+            <small class="text-dark" id="info_horarios"></small>
         </div>
         
         <button type="submit" class="btn mef-btn-primary w-100">AGENDAR CONSULTA</button>
     </form>
 </div>
+
+<script>
+let horariosProfissional = [];
+let datasDisponiveis = [];
+
+async function carregarHorariosProfissional() {
+    const profId = document.getElementById('select_profissional').value;
+    const calendarioContainer = document.getElementById('calendario_container');
+    const msgSemProf = document.getElementById('msg_sem_profissional');
+    const selectHora = document.getElementById('select_hora');
+    const infoHorarios = document.getElementById('info_horarios');
+    
+    if (!profId) {
+        calendarioContainer.style.display = 'none';
+        msgSemProf.style.display = 'block';
+        selectHora.innerHTML = '<option value="">Primeiro selecione o profissional</option>';
+        infoHorarios.textContent = '';
+        return;
+    }
+    
+    try {
+        const response = await fetch(`../includes-Gerais/profissionais-gerenciamento.php?get_horarios=${profId}`);
+        horariosProfissional = await response.json();
+        
+        if (horariosProfissional.length === 0) {
+            calendarioContainer.style.display = 'none';
+            msgSemProf.innerHTML = '<i class="bi bi-exclamation-triangle"></i> Este profissional não tem horários disponíveis no momento';
+            msgSemProf.className = 'alert alert-warning';
+            msgSemProf.style.display = 'block';
+            selectHora.innerHTML = '<option value="">Sem horários disponíveis</option>';
+            infoHorarios.textContent = '';
+        } else {
+            // Filtra apenas datas que têm horários disponíveis
+            datasDisponiveis = [...new Set(horariosProfissional.map(h => h.data_atendimento))].sort();
+            
+            if (datasDisponiveis.length === 0) {
+                calendarioContainer.style.display = 'none';
+                msgSemProf.innerHTML = '<i class="bi bi-exclamation-triangle"></i> Todos os horários estão ocupados';
+                msgSemProf.className = 'alert alert-warning';
+                msgSemProf.style.display = 'block';
+                selectHora.innerHTML = '<option value="">Sem horários disponíveis</option>';
+                infoHorarios.textContent = '';
+            } else {
+                msgSemProf.style.display = 'none';
+                calendarioContainer.style.display = 'block';
+                gerarCalendario();
+                selectHora.innerHTML = '<option value="">Selecione uma data no calendário</option>';
+                
+                const totalHorarios = horariosProfissional.length;
+                infoHorarios.textContent = `${datasDisponiveis.length} data(s) com horários disponíveis (${totalHorarios} horário(s) no total)`;
+                infoHorarios.className = 'text-success';
+            }
+        }
+    } catch (error) {
+        console.error('Erro ao carregar horários:', error);
+        msgSemProf.innerHTML = '<i class="bi bi-x-circle"></i> Erro ao carregar horários';
+        msgSemProf.className = 'alert alert-danger';
+        msgSemProf.style.display = 'block';
+    }
+}
+
+function gerarCalendario() {
+    const container = document.getElementById('calendario_custom');
+    container.innerHTML = '<h6 class="mb-3 text-dark">Datas Disponíveis (clique para selecionar)</h6>';
+    
+    const grid = document.createElement('div');
+    grid.style.display = 'grid';
+    grid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(150px, 1fr))';
+    grid.style.gap = '10px';
+    
+    datasDisponiveis.forEach(data => {
+        // Conta quantos horários disponíveis tem nesta data
+        const horariosNaData = horariosProfissional.filter(h => h.data_atendimento === data).length;
+        
+        const dataObj = new Date(data + 'T00:00:00');
+        const dataFormatada = dataObj.toLocaleDateString('pt-BR', { 
+            weekday: 'short', 
+            day: '2-digit', 
+            month: 'short' 
+        });
+        
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'btn btn-outline-primary data-btn';
+        btn.innerHTML = `${dataFormatada}<br><small style="font-size: 0.75rem;">(${horariosNaData} disponível${horariosNaData > 1 ? 'is' : ''})</small>`;
+        btn.dataset.data = data;
+        btn.style.textTransform = 'capitalize';
+        
+        btn.onclick = function() {
+            document.querySelectorAll('.data-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            selecionarData(data);
+        };
+        
+        grid.appendChild(btn);
+    });
+    
+    container.appendChild(grid);
+}
+
+function selecionarData(data) {
+    document.getElementById('select_data_hidden').value = data;
+    
+    const dataObj = new Date(data + 'T00:00:00');
+    const dataFormatada = dataObj.toLocaleDateString('pt-BR', { 
+        weekday: 'long', 
+        day: '2-digit', 
+        month: 'long', 
+        year: 'numeric' 
+    });
+    
+    document.getElementById('data_selecionada').textContent = `Data selecionada: ${dataFormatada}`;
+    document.getElementById('data_selecionada').className = 'text-success fw-bold mt-2 d-block';
+    
+    atualizarHorariosDisponiveis(data);
+}
+
+function atualizarHorariosDisponiveis(data) {
+    const selectHora = document.getElementById('select_hora');
+    const infoHorarios = document.getElementById('info_horarios');
+    
+    if (!data || !horariosProfissional || horariosProfissional.length === 0) {
+        return;
+    }
+    
+    const horariosDisponiveis = horariosProfissional.filter(h => h.data_atendimento === data);
+    
+    if (horariosDisponiveis.length === 0) {
+        selectHora.innerHTML = '<option value="">Nenhum horário disponível</option>';
+        return;
+    }
+    
+    selectHora.innerHTML = '<option value="">Escolha um horário</option>';
+    
+    horariosDisponiveis.forEach(horario => {
+        const inicio = horario.hora_inicio.substring(0, 5);
+        const fim = horario.hora_fim.substring(0, 5);
+        
+        const [horaInicio, minInicio] = inicio.split(':').map(Number);
+        const [horaFim, minFim] = fim.split(':').map(Number);
+        
+        let minutos = horaInicio * 60 + minInicio;
+        const minutosFim = horaFim * 60 + minFim;
+        const duracaoTotal = minutosFim - minutos;
+        
+        // Se a duração for menor que 1 hora, mostra o horário completo sem dividir
+        if (duracaoTotal <= 60) {
+            const option = document.createElement('option');
+            option.value = inicio;
+            option.textContent = `${inicio} - ${fim}`;
+            selectHora.appendChild(option);
+        } else {
+            // Se for maior que 1 hora, divide em slots de 30 minutos
+            while (minutos < minutosFim) {
+                const h = Math.floor(minutos / 60);
+                const m = minutos % 60;
+                const horaInicioSlot = String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
+                
+                // Calcula o horário final do slot (30 minutos depois ou o fim do período)
+                const minutosProximo = Math.min(minutos + 30, minutosFim);
+                const hFim = Math.floor(minutosProximo / 60);
+                const mFim = minutosProximo % 60;
+                const horaFimSlot = String(hFim).padStart(2, '0') + ':' + String(mFim).padStart(2, '0');
+                
+                const option = document.createElement('option');
+                option.value = horaInicioSlot;
+                option.textContent = `${horaInicioSlot} - ${horaFimSlot}`;
+                selectHora.appendChild(option);
+                
+                minutos += 30;
+            }
+        }
+    });
+    
+    infoHorarios.textContent = `Horários disponíveis: ${horariosDisponiveis.map(h => h.hora_inicio.substring(0,5) + ' - ' + h.hora_fim.substring(0,5)).join(', ')}`;
+    infoHorarios.className = 'text-dark mt-1';
+}
+</script>
+
+<style>
+.data-btn.active {
+    background-color: #667eea !important;
+    color: white !important;
+    border-color: #667eea !important;
+}
+</style>

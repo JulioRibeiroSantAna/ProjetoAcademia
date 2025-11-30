@@ -1,9 +1,3 @@
-<!--
-ARQUIVO: footer.php
-Rodapé do site com redes sociais e informações
-Fixo em todas as páginas
--->
-
 <footer id="footer" class="section-spacing-sm">
     <div class="container-symmetric">
         <div class="mef-card">

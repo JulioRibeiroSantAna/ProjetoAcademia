@@ -26,7 +26,6 @@ function validarTelefone($telefone) {
     return strlen($telefone) >= 10 && strlen($telefone) <= 15;
 }
 
-/** Valida todos os campos do cadastro */
 function validarCadastro($nome, $apelido, $email, $senha, $confirmSenha, $telefone = '') {
     $erros = [];
     
@@ -57,7 +56,6 @@ function validarCadastro($nome, $apelido, $email, $senha, $confirmSenha, $telefo
     return $erros;
 }
 
-// Limpa dados do formulário (proteção contra XSS)
 function sanitizarEntrada($dados) {
     if (is_array($dados)) {
         $resultado = [];

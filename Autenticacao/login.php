@@ -1,36 +1,28 @@
 <?php
 /**
- * ARQUIVO: login.php
- * Página de login do sistema
- * O usuário digita email e senha, sistema valida e redireciona
+ * Página de login
  */
 
-// Carrega as configurações e inicia a sessão
 require_once '../config.php';
 require_once 'validacao.php';
 require_once '../db_connection.php';
 
-// Se veio da página de profissionais, mostra mensagem
 if (isset($_GET['from']) && $_GET['from'] === 'profissionais') {
     $mensagem_redirect = 'Faça login para agendar uma consulta com nossos profissionais!';
 }
 
-// Processa o login quando o formulário é enviado
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
-    // Limpa os dados do formulário
     $dados = sanitizarEntrada($_POST);
     $email = $dados['email'] ?? '';
     $password = $dados['password'] ?? '';
     
-    // Valida email e senha
     if (!validarEmail($email)) {
         $erro = 'E-mail inválido!';
     } elseif (!validarSenha($password)) {
         $erro = 'Senha deve ter entre 8 e 14 caracteres!';
     } else {
         try {
-            // Busca o usuário no banco
             $stmt = $pdo->prepare('SELECT * FROM usuarios WHERE email = ?');
             $stmt->execute([$email]);
             $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -38,15 +30,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($usuario) {
                 $senha_valida = false;
                 
-                // Verifica se a senha está criptografada ou em texto
                 if (strlen($usuario['senha']) > 20 && strpos($usuario['senha'], '$') === 0) {
-                    // Senha criptografada
                     $senha_valida = password_verify($password, $usuario['senha']);
                 } else {
-                    // Senha em texto (pra teste)
                     $senha_valida = ($password === $usuario['senha']);
                     
-                    // Se está correta, criptografa ela agora
                     if ($senha_valida) {
                         $nova_senha_hash = password_hash($password, PASSWORD_DEFAULT);
                         $stmt_update = $pdo->prepare('UPDATE usuarios SET senha = ? WHERE id_usuario = ?');
@@ -54,9 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                 }
                 
-                // Se a senha está correta, faz o login
                 if ($senha_valida) {
-                    // Salva dados na sessão
                     $_SESSION['id_usuario'] = $usuario['id_usuario'];
                     $_SESSION['tipo_usuario'] = $usuario['tipo'];
                     $_SESSION['nome_usuario'] = $usuario['nome'];
@@ -66,7 +52,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $_SESSION['foto_usuario'] = $usuario['foto'];
                     $_SESSION['login_time'] = time();
                     
-                    // Redireciona conforme o tipo de usuário
                     if ($usuario['tipo'] === 'admin') {
                         header('Location: ../AdmLogado/logado-Adm.php');
                     } else {

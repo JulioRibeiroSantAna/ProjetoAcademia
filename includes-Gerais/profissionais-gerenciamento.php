@@ -12,6 +12,38 @@ require_once __DIR__ . '/../db_connection.php';
 
 $is_admin = ($_SESSION['tipo_usuario'] === 'admin');
 $msg = '';
+$show_success = false;
+
+if (isset($_SESSION['msg_sucesso'])) {
+    $msg = $_SESSION['msg_sucesso'];
+    unset($_SESSION['msg_sucesso']);
+}
+
+if (isset($_GET['get_horarios'])) {
+    $id_prof = intval($_GET['get_horarios']);
+    $stmt = $pdo->prepare('SELECT * FROM horarios_profissionais WHERE id_profissional = ? AND data_atendimento >= CURDATE() AND status = "disponivel" ORDER BY data_atendimento, hora_inicio');
+    $stmt->execute([$id_prof]);
+    header('Content-Type: application/json');
+    echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
+    exit;
+}
+
+if (isset($_GET['get_profissional'])) {
+    $id_prof = intval($_GET['get_profissional']);
+    $stmt = $pdo->prepare('SELECT * FROM profissionais WHERE id = ?');
+    $stmt->execute([$id_prof]);
+    $profissional = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    if ($profissional) {
+        $stmt_horarios = $pdo->prepare('SELECT * FROM horarios_profissionais WHERE id_profissional = ? AND data_atendimento >= CURDATE() ORDER BY data_atendimento, hora_inicio');
+        $stmt_horarios->execute([$id_prof]);
+        $profissional['horarios'] = $stmt_horarios->fetchAll(PDO::FETCH_ASSOC);
+    }
+    
+    header('Content-Type: application/json');
+    echo json_encode($profissional);
+    exit;
+}
 
 $pdo->exec("CREATE TABLE IF NOT EXISTS profissionais (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -22,6 +54,17 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS profissionais (
     descricao TEXT NOT NULL,
     foto VARCHAR(255) DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)");
+
+$pdo->exec("CREATE TABLE IF NOT EXISTS horarios_profissionais (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    id_profissional INT NOT NULL,
+    data_atendimento DATE NOT NULL,
+    hora_inicio TIME NOT NULL,
+    hora_fim TIME NOT NULL,
+    status ENUM('disponivel', 'reservado') DEFAULT 'disponivel',
+    FOREIGN KEY (id_profissional) REFERENCES profissionais(id) ON DELETE CASCADE,
+    INDEX idx_profissional_data (id_profissional, data_atendimento)
 )");
 
 /**
@@ -82,18 +125,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_admin) {
         
         if ($nome && $especialidade && $descricao && !$msg) {
             try {
-                /** Validação de email único */
+                /** Validação de email único (apenas se email for fornecido) */
                 if (!empty($email)) {
-                    $stmt = $pdo->prepare('SELECT id FROM profissionais WHERE email = ?');
+                    $stmt = $pdo->prepare('SELECT id FROM profissionais WHERE email = ? AND email != ""');
                     $stmt->execute([$email]);
                     if ($stmt->fetch()) {
                         $msg = '❌ Este email já está cadastrado para outro profissional!';
                     }
                 }
                 
-                /** Validação de telefone único */
+                /** Validação de telefone único (apenas se telefone for fornecido) */
                 if (!empty($telefone) && !$msg) {
-                    $stmt = $pdo->prepare('SELECT id FROM profissionais WHERE telefone = ?');
+                    $stmt = $pdo->prepare('SELECT id FROM profissionais WHERE telefone = ? AND telefone != ""');
                     $stmt->execute([$telefone]);
                     if ($stmt->fetch()) {
                         $msg = '❌ Este telefone já está cadastrado para outro profissional!';
@@ -103,7 +146,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_admin) {
                 if (!$msg) {
                     $stmt = $pdo->prepare('INSERT INTO profissionais (nome, especialidade, email, telefone, descricao, foto) VALUES (?, ?, ?, ?, ?, ?)');
                     $stmt->execute([$nome, $especialidade, $email, $telefone, $descricao, $foto]);
-                    $msg = '✅ Profissional adicionado com sucesso!';
+                    $id_profissional = $pdo->lastInsertId();
+                    
+                    if (!empty($_POST['horarios_json'])) {
+                        $horariosJson = json_decode($_POST['horarios_json'], true);
+                        if ($horariosJson && is_array($horariosJson)) {
+                            $stmt_horario = $pdo->prepare('INSERT INTO horarios_profissionais (id_profissional, data_atendimento, hora_inicio, hora_fim, status) VALUES (?, ?, ?, ?, "disponivel")');
+                            foreach ($horariosJson as $h) {
+                                if (!empty($h['data']) && !empty($h['hora_inicio']) && !empty($h['hora_fim'])) {
+                                    $stmt_horario->execute([$id_profissional, $h['data'], $h['hora_inicio'], $h['hora_fim']]);
+                                }
+                            }
+                        }
+                    }
+                    
+                    $_SESSION['msg_sucesso'] = '✅ Profissional adicionado com sucesso!';
+                    $show_success = true;
                 }
             } catch (PDOException $e) {
                 $msg = '❌ Erro ao adicionar: ' . $e->getMessage();
@@ -129,9 +187,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_admin) {
                 $prof_atual = $stmt->fetch();
                 $foto = $prof_atual['foto'];
                 
+                // Verificar se o email já existe em outro profissional
+                if (!empty($email)) {
+                    $stmt = $pdo->prepare('SELECT id FROM profissionais WHERE email = ? AND id != ? AND email != ""');
+                    $stmt->execute([$email, $id]);
+                    if ($stmt->fetch()) {
+                        $msg = '❌ Este email já está cadastrado para outro profissional!';
+                    }
+                }
+                
                 // Verificar se o telefone já existe em outro profissional
-                if (!empty($telefone)) {
-                    $stmt = $pdo->prepare('SELECT id FROM profissionais WHERE telefone = ? AND id != ?');
+                if (!empty($telefone) && !$msg) {
+                    $stmt = $pdo->prepare('SELECT id FROM profissionais WHERE telefone = ? AND id != ? AND telefone != ""');
                     $stmt->execute([$telefone, $id]);
                     if ($stmt->fetch()) {
                         $msg = '❌ Este telefone já está cadastrado para outro profissional!';
@@ -155,7 +222,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_admin) {
                 if (!$msg) {
                     $stmt = $pdo->prepare('UPDATE profissionais SET nome = ?, especialidade = ?, email = ?, telefone = ?, descricao = ?, foto = ? WHERE id = ?');
                     $stmt->execute([$nome, $especialidade, $email, $telefone, $descricao, $foto, $id]);
-                    $msg = '✅ Profissional atualizado com sucesso!';
+                    
+                    $pdo->prepare('DELETE FROM horarios_profissionais WHERE id_profissional = ? AND data_atendimento >= CURDATE() AND status = "disponivel"')->execute([$id]);
+                    
+                    if (!empty($_POST['horarios_json'])) {
+                        $horariosJson = json_decode($_POST['horarios_json'], true);
+                        if ($horariosJson && is_array($horariosJson)) {
+                            $stmt_horario = $pdo->prepare('INSERT INTO horarios_profissionais (id_profissional, data_atendimento, hora_inicio, hora_fim, status) VALUES (?, ?, ?, ?, "disponivel")');
+                            foreach ($horariosJson as $h) {
+                                if (!empty($h['data']) && !empty($h['hora_inicio']) && !empty($h['hora_fim'])) {
+                                    $stmt_horario->execute([$id, $h['data'], $h['hora_inicio'], $h['hora_fim']]);
+                                }
+                            }
+                        }
+                    }
+                    
+                    $_SESSION['msg_sucesso'] = '✅ Profissional atualizado com sucesso!';
+                    $show_success = true;
                 }
             } catch (PDOException $e) {
                 $msg = '❌ Erro ao atualizar: ' . $e->getMessage();
@@ -177,7 +260,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_admin) {
                 
                 $stmt = $pdo->prepare('DELETE FROM profissionais WHERE id = ?');
                 $stmt->execute([$id]);
-                $msg = '✅ Profissional excluído com sucesso!';
+                $_SESSION['msg_sucesso'] = '✅ Profissional excluído com sucesso!';
+                $show_success = true;
             } catch (PDOException $e) {
                 $msg = '❌ Erro ao excluir: ' . $e->getMessage();
             }
@@ -188,7 +272,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_admin) {
 // Buscar profissionais
 try {
     $stmt = $pdo->query('SELECT * FROM profissionais ORDER BY nome');
-    $profissionais = $stmt->fetchAll();
+    $profissionais = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    foreach ($profissionais as $key => $prof) {
+        $stmt_horarios = $pdo->prepare('SELECT COUNT(*) as total FROM horarios_profissionais WHERE id_profissional = ? AND data_atendimento >= CURDATE() AND status = "disponivel"');
+        $stmt_horarios->execute([$prof['id']]);
+        $result = $stmt_horarios->fetch(PDO::FETCH_ASSOC);
+        $profissionais[$key]['total_horarios'] = $result['total'];
+    }
 } catch (PDOException $e) {
     $profissionais = [];
 }
@@ -382,6 +473,7 @@ textarea.form-control:focus {
                     <th>Especialidade</th>
                     <th>Email</th>
                     <th>Telefone</th>
+                    <th>Horários</th>
                     <?php if ($is_admin): ?>
                         <th width="150">Ações</th>
                     <?php endif; ?>
@@ -390,17 +482,17 @@ textarea.form-control:focus {
             <tbody>
                 <?php if (empty($profissionais)): ?>
                     <tr>
-                        <td colspan="6" class="text-center py-4">
+                        <td colspan="7" class="text-center py-4">
                             <i class="bi bi-inbox" style="font-size: 3rem; opacity: 0.3;"></i>
                             <p class="mt-2 text-muted">Nenhum profissional cadastrado</p>
                         </td>
                     </tr>
                 <?php else: ?>
                     <?php foreach ($profissionais as $prof): ?>
-                        <tr>
+                        <tr data-prof-id="<?php echo $prof['id']; ?>">
                             <td>
                                 <?php if ($prof['foto']): ?>
-                                    <img src="<?php echo htmlspecialchars('../' . $prof['foto']); ?>" 
+                                    <img src="<?php echo htmlspecialchars('../' . $prof['foto']); ?>?v=<?php echo time(); ?>" 
                                          alt="Foto de <?php echo htmlspecialchars($prof['nome']); ?>" 
                                          class="rounded-circle" 
                                          style="width: 50px; height: 50px; object-fit: cover; border: 2px solid #667eea;">
@@ -415,9 +507,18 @@ textarea.form-control:focus {
                             <td><?php echo htmlspecialchars($prof['especialidade']); ?></td>
                             <td><?php echo htmlspecialchars($prof['email'] ?? '-'); ?></td>
                             <td><?php echo htmlspecialchars($prof['telefone'] ?? '-'); ?></td>
+                            <td>
+                                <?php if ($prof['total_horarios'] > 0): ?>
+                                    <button class="btn btn-sm btn-outline-info" onclick="verHorarios(<?php echo $prof['id']; ?>, '<?php echo htmlspecialchars($prof['nome']); ?>')">
+                                        <i class="bi bi-clock"></i> <?php echo $prof['total_horarios']; ?> horário(s)
+                                    </button>
+                                <?php else: ?>
+                                    <small class="text-muted">Sem horários</small>
+                                <?php endif; ?>
+                            </td>
                             <?php if ($is_admin): ?>
                                 <td>
-                                    <button class="btn btn-sm btn-primary" onclick="editarProfissional(<?php echo $prof['id']; ?>, '<?php echo addslashes($prof['nome']); ?>', '<?php echo addslashes($prof['especialidade']); ?>', '<?php echo addslashes($prof['email'] ?? ''); ?>', '<?php echo addslashes($prof['telefone'] ?? ''); ?>', '<?php echo addslashes($prof['descricao']); ?>', '<?php echo addslashes($prof['foto'] ?? ''); ?>')">
+                                    <button class="btn btn-sm btn-primary" onclick="editarProfissional(<?php echo $prof['id']; ?>)">
                                         <i class="bi bi-pencil"></i>
                                     </button>
                                     <button class="btn btn-sm btn-danger" onclick="excluir(<?php echo $prof['id']; ?>)">
@@ -442,7 +543,7 @@ textarea.form-control:focus {
                 <h5 class="modal-title">Adicionar Profissional</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form method="POST" enctype="multipart/form-data">
+            <form method="POST" enctype="multipart/form-data" id="formAdicionar" onsubmit="return submitForm(this)">
                 <div class="modal-body">
                     <input type="hidden" name="acao" value="adicionar">
                     
@@ -491,10 +592,52 @@ textarea.form-control:focus {
                         <label class="form-label">Descrição *</label>
                         <textarea class="form-control" name="descricao" rows="3" required></textarea>
                     </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label fw-bold" style="color: #667eea; font-size: 1.1rem;">
+                            <i class="bi bi-calendar-check me-2"></i>Horários Disponíveis
+                        </label>
+                        <div class="alert alert-info d-flex align-items-center mb-3">
+                            <i class="bi bi-info-circle-fill me-2"></i>
+                            <small>Adicione as <strong>datas e horários específicos</strong> que o profissional estará disponível para consultas online.</small>
+                        </div>
+                        
+                        <div id="horarios_add_container" class="mb-3" style="max-height: 250px; overflow-y: auto; border: 2px solid #e0e7ff; border-radius: 8px; padding: 12px; background: #f8fafc;">
+                            <!-- Horários adicionados -->
+                        </div>
+                        
+                        <div class="row g-2 mb-2">
+                            <div class="col-md-4">
+                                <label class="form-label small">Data</label>
+                                <input type="date" class="form-control" id="add_nova_data" min="<?php echo date('Y-m-d'); ?>">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small">Início</label>
+                                <input type="time" class="form-control" id="add_novo_inicio">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small">Fim</label>
+                                <input type="time" class="form-control" id="add_novo_fim">
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                <button type="button" class="btn btn-success w-100" onclick="adicionarHorario('add')">
+                                    <i class="bi bi-plus-circle"></i> Add
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <input type="hidden" name="horarios_json" id="horarios_add_json">
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-success">Adicionar</button>
+                    <button type="submit" class="btn btn-success btn-submit">
+                        <span class="btn-text">Adicionar</span>
+                        <span class="btn-loading d-none">
+                            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                            Salvando...
+                        </span>
+                    </button>
                 </div>
             </form>
         </div>
@@ -509,7 +652,7 @@ textarea.form-control:focus {
                 <h5 class="modal-title">Editar Profissional</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form method="POST" enctype="multipart/form-data">
+            <form method="POST" enctype="multipart/form-data" id="formEditar" onsubmit="return submitForm(this)">
                 <div class="modal-body">
                     <input type="hidden" name="acao" value="editar">
                     <input type="hidden" name="id" id="edit_id">
@@ -561,12 +704,72 @@ textarea.form-control:focus {
                         <label class="form-label">Descrição *</label>
                         <textarea class="form-control" name="descricao" id="edit_descricao" rows="3" required></textarea>
                     </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label fw-bold" style="color: #667eea; font-size: 1.1rem;">
+                            <i class="bi bi-calendar-check me-2"></i>Horários Disponíveis
+                        </label>
+                        <div class="alert alert-info d-flex align-items-center mb-3">
+                            <i class="bi bi-info-circle-fill me-2"></i>
+                            <small>Adicione as <strong>datas e horários específicos</strong> que o profissional estará disponível para consultas online.</small>
+                        </div>
+                        
+                        <div id="horarios_edit_container" class="mb-3" style="max-height: 250px; overflow-y: auto; border: 2px solid #e0e7ff; border-radius: 8px; padding: 12px; background: #f8fafc;">
+                            <!-- Horários adicionados -->
+                        </div>
+                        
+                        <div class="row g-2 mb-2">
+                            <div class="col-md-4">
+                                <label class="form-label small">Data</label>
+                                <input type="date" class="form-control" id="edit_nova_data" min="<?php echo date('Y-m-d'); ?>">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small">Início</label>
+                                <input type="time" class="form-control" id="edit_novo_inicio">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small">Fim</label>
+                                <input type="time" class="form-control" id="edit_novo_fim">
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                <button type="button" class="btn btn-success w-100" onclick="adicionarHorario('edit')">
+                                    <i class="bi bi-plus-circle"></i> Add
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <input type="hidden" name="horarios_json" id="horarios_edit_json">
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">Salvar</button>
+                    <button type="submit" class="btn btn-primary btn-submit">
+                        <span class="btn-text">Salvar Alterações</span>
+                        <span class="btn-loading d-none">
+                            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                            Salvando...
+                        </span>
+                    </button>
                 </div>
             </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Ver Horários -->
+<div class="modal fade" id="horariosModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="horarios_modal_title">Horários de Atendimento</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="horarios_modal_body">
+                <!-- Conteúdo carregado dinamicamente -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            </div>
         </div>
     </div>
 </div>
@@ -610,6 +813,26 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
+// Proteção contra duplo submit
+function submitForm(form) {
+    const submitBtn = form.querySelector('.btn-submit');
+    const btnText = submitBtn.querySelector('.btn-text');
+    const btnLoading = submitBtn.querySelector('.btn-loading');
+    
+    // Se já está enviando, prevenir
+    if (submitBtn.disabled) {
+        return false;
+    }
+    
+    // Desabilitar botão e mostrar loading
+    submitBtn.disabled = true;
+    btnText.classList.add('d-none');
+    btnLoading.classList.remove('d-none');
+    
+    // Permitir submit
+    return true;
+}
+
 // Função para preview de imagem
 function previewImage(input, previewId) {
     const preview = document.getElementById(previewId);
@@ -638,35 +861,105 @@ function excluir(id) {
 }
 
 // Função para editar profissional
-function editarProfissional(id, nome, especialidade, email, telefone, descricao, foto) {
-    document.getElementById('edit_id').value = id;
-    document.getElementById('edit_nome').value = nome;
-    document.getElementById('edit_especialidade').value = especialidade;
-    document.getElementById('edit_email').value = email;
-    document.getElementById('edit_telefone').value = telefone;
-    document.getElementById('edit_descricao').value = descricao;
+async function editarProfissional(id) {
+    try {
+        const response = await fetch(`../includes-Gerais/profissionais-gerenciamento.php?get_profissional=${id}`);
+        const prof = await response.json();
+        
+        if (!prof) {
+            alert('Erro ao carregar dados do profissional');
+            return;
+        }
+        
+        document.getElementById('edit_id').value = prof.id;
+        document.getElementById('edit_nome').value = prof.nome;
+        document.getElementById('edit_especialidade').value = prof.especialidade;
+        document.getElementById('edit_email').value = prof.email || '';
+        document.getElementById('edit_telefone').value = prof.telefone || '';
+        document.getElementById('edit_descricao').value = prof.descricao;
+        
+        const currentPhotoContainer = document.getElementById('current_photo_container');
+        if (prof.foto) {
+            currentPhotoContainer.innerHTML = `
+                <img src="../${prof.foto}" alt="Foto atual" style="max-width: 150px; max-height: 150px; border-radius: 10px; border: 2px solid #667eea;">
+            `;
+        } else {
+            currentPhotoContainer.innerHTML = `
+                <div class="rounded-circle d-inline-flex align-items-center justify-content-center" 
+                     style="width: 80px; height: 80px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <i class="bi bi-person-fill" style="font-size: 2rem; color: white;"></i>
+                </div>
+                <p class="text-muted mt-2">Nenhuma foto cadastrada</p>
+            `;
+        }
+        
+        document.getElementById('preview_edit').style.display = 'none';
+        
+        carregarHorariosExistentes('edit', prof.horarios || []);
+        
+        const modal = new bootstrap.Modal(document.getElementById('editModal'));
+        modal.show();
+    } catch (error) {
+        console.error('Erro ao carregar profissional:', error);
+        alert('Erro ao carregar dados do profissional');
+    }
+}
+
+// Limpar modal de adicionar quando for aberto
+document.getElementById('addModal').addEventListener('show.bs.modal', function() {
+    // Limpar campos do formulário
+    const form = this.querySelector('form');
+    form.reset();
     
-    // Mostrar foto atual
-    const currentPhotoContainer = document.getElementById('current_photo_container');
-    if (foto) {
-        currentPhotoContainer.innerHTML = `
-            <img src="../${foto}" alt="Foto atual" style="max-width: 150px; max-height: 150px; border-radius: 10px; border: 2px solid #667eea;">
-        `;
-    } else {
-        currentPhotoContainer.innerHTML = `
-            <div class="rounded-circle d-inline-flex align-items-center justify-content-center" 
-                 style="width: 80px; height: 80px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                <i class="bi bi-person-fill" style="font-size: 2rem; color: white;"></i>
-            </div>
-            <p class="text-muted mt-2">Nenhuma foto cadastrada</p>
-        `;
+    // Limpar preview da imagem
+    document.getElementById('preview_add').style.display = 'none';
+    document.getElementById('preview_add').src = '';
+    
+    // Reabilitar botão submit
+    const submitBtn = form.querySelector('.btn-submit');
+    if (submitBtn) {
+        submitBtn.disabled = false;
+        const btnText = submitBtn.querySelector('.btn-text');
+        const btnLoading = submitBtn.querySelector('.btn-loading');
+        if (btnText) btnText.classList.remove('d-none');
+        if (btnLoading) btnLoading.classList.add('d-none');
     }
     
-    // Limpar preview
-    document.getElementById('preview_edit').style.display = 'none';
+    // Limpar horários
+    if (typeof horariosData !== 'undefined') {
+        horariosData.add = [];
+        renderizarHorarios('add');
+    }
+});
+
+// Limpar modal de editar quando for fechado
+document.getElementById('editModal').addEventListener('hidden.bs.modal', function() {
+    // Reabilitar botão submit
+    const form = this.querySelector('form');
+    const submitBtn = form.querySelector('.btn-submit');
+    if (submitBtn) {
+        submitBtn.disabled = false;
+        const btnText = submitBtn.querySelector('.btn-text');
+        const btnLoading = submitBtn.querySelector('.btn-loading');
+        if (btnText) btnText.classList.remove('d-none');
+        if (btnLoading) btnLoading.classList.add('d-none');
+    }
     
-    const modal = new bootstrap.Modal(document.getElementById('editModal'));
-    modal.show();
-}
+    if (typeof horariosData !== 'undefined') {
+        horariosData.edit = [];
+        renderizarHorarios('edit');
+    }
+});
 </script>
+<script src="../includes-Gerais/horarios-script.js"></script>
+
+<?php if ($show_success): ?>
+<script>
+// Redirecionar após sucesso para evitar reenvio de formulário
+setTimeout(function() {
+    window.location.href = window.location.pathname;
+}, 2000);
+</script>
+<?php endif; ?>
+
 <?php endif; ?>

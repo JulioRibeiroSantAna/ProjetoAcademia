@@ -1,25 +1,18 @@
 <?php
 /**
- * ARQUIVO: perfil-dinamico.php
  * Visualização do perfil do usuário
- * Mostra avatar, nome, apelido, email, telefone
- * Funciona para admin e usuário comum
  */
 
-// Verifica se é admin (pra ajustar link de edição)
 $is_admin = (isset($_SESSION['tipo_usuario']) && $_SESSION['tipo_usuario'] === 'admin');
 
-// Pega dados da sessão
 $usuario_nome = isset($_SESSION['nome_usuario']) ? $_SESSION['nome_usuario'] : 'Usuário';
 $usuario_apelido = isset($_SESSION['apelido_usuario']) ? $_SESSION['apelido_usuario'] : '';
 $usuario_email = isset($_SESSION['email_usuario']) ? $_SESSION['email_usuario'] : "";
 $usuario_telefone = isset($_SESSION['telefone_usuario']) ? $_SESSION['telefone_usuario'] : "";
 $usuario_foto = isset($_SESSION['foto_usuario']) ? $_SESSION['foto_usuario'] : "";
 
-// Usa apelido se tiver, senão usa nome completo
 $nome_exibicao = !empty(trim($usuario_apelido)) ? $usuario_apelido : $usuario_nome;
 
-// Verifica se há mensagem de sucesso
 $show_success = isset($_GET['msg']) && $_GET['msg'] === 'success';
 ?>
 

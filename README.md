@@ -2,12 +2,12 @@
 
 ### Administrador
 - **Email:** admin@mef.com
-- **Senha:** 123456
+- **Senha:** admin123
 - **Perfil:** Acesso total ao sistema (gerenciar profissionais, vídeos, usuários)
 
 ### Usuário Comum
 - **Email:** teste1@gmail.com
-- **Senha:** 123456
+- **Senha:** 12345678
 - **Perfil:** Acesso a agendamentos, vídeos de apoio e perfil pessoal
 
 ## Como Navegar no Sistema

@@ -1,8 +1,6 @@
 <?php
 /**
- * ARQUIVO: profissionais-section.php
- * Cards dos profissionais com foto, especialidade e contatos
- * Busca 4 profissionais do banco e exibe
+ * Cards dos profissionais
  */
 
 if (session_status() === PHP_SESSION_NONE) {
@@ -15,12 +13,10 @@ if (!defined('BASE_URL')) {
 
 require_once __DIR__ . '/../db_connection.php';
 
-// Valores padrão (visitante)
 $url_agendamento = BASE_URL . "/Autenticacao/login.php";
 $texto_botao = "Conhecer";
 $texto_descricao = "Cada corpo é diferente, por isso nos certificamos de que você possa escolher um plano que funcione melhor para você.";
 
-// Se está logado, muda texto e URL
 if (isset($_SESSION['tipo_usuario']) && $_SESSION['tipo_usuario'] !== '') {
     $texto_botao = "Agendar Consulta";
     $texto_descricao = "Conheça nossa equipe de especialistas";
@@ -32,13 +28,11 @@ if (isset($_SESSION['tipo_usuario']) && $_SESSION['tipo_usuario'] !== '') {
     }
 }
 
-// Se visitante tentar agendar, adiciona parâmetro na URL
 $url_com_parametro = $url_agendamento;
 if (!isset($_SESSION['tipo_usuario']) || $_SESSION['tipo_usuario'] === '') {
     $url_com_parametro .= '?from=profissionais';
 }
 
-// Busca 4 profissionais do banco
 try {
     $stmt = $pdo->query("SELECT * FROM profissionais ORDER BY nome LIMIT 4");
     $profissionais = $stmt->fetchAll(PDO::FETCH_ASSOC);

@@ -1,6 +1,5 @@
 <?php
 /**
- * ARQUIVO: cadastro.php
  * Página de cadastro de novos usuários
  */
 
@@ -8,10 +7,8 @@ require_once '../config.php';
 require_once 'validacao.php';
 require_once '../db_connection.php';
 
-// Processa o cadastro quando o formulário é enviado
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
-    // Limpa os dados do formulário
     $dados = sanitizarEntrada($_POST);
     $nome = $dados['name'] ?? '';
     $apelido = $dados['apelido'] ?? '';
@@ -19,14 +16,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $senha = $dados['password'] ?? '';
     $confirmSenha = $dados['confirmPassword'] ?? '';
     $telefone = $dados['telefone'] ?? '';
-    $tipo = 'usuario'; // Novos cadastros são sempre usuário comum
+    $tipo = 'usuario';
 
-    // Valida todos os campos
     $erros = validarCadastro($nome, $apelido, $email, $senha, $confirmSenha, $telefone);
     
     if (empty($erros)) {
         try {
-            // Verifica se o email já existe
             $stmt = $pdo->prepare('SELECT id_usuario FROM usuarios WHERE email = ?');
             $stmt->execute([$email]);
             
@@ -34,10 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['mensagem'] = 'E-mail já cadastrado!';
                 $_SESSION['tipo_mensagem'] = 'erro';
             } else {
-                // Criptografa a senha
                 $hash = password_hash($senha, PASSWORD_DEFAULT);
-                
-                // Insere novo usuário no banco
                 $stmt = $pdo->prepare('INSERT INTO usuarios (nome, apelido, email, senha, tipo, telefone) VALUES (?, ?, ?, ?, ?, ?)');
                 
                 if ($stmt->execute([$nome, $apelido, $email, $hash, $tipo, $telefone])) {
@@ -56,7 +48,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             error_log("Erro cadastro: " . $e->getMessage());
         }
     } else {
-        // Se tem erros, junta todos com <br>
         $_SESSION['mensagem'] = implode('<br>', $erros);
         $_SESSION['tipo_mensagem'] = 'erro';
     }
