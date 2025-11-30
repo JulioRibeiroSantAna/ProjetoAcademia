@@ -25,17 +25,9 @@ if (strpos($base_url, '/Autenticacao') !== false) {
 
 define('BASE_URL', $base_url);
 
-// Detecta automaticamente o host do banco de dados
-// Prioridade: db (container) > siteacademia_db (nome do container) > localhost
-if (getenv('DOCKER_ENV') === 'true' || file_exists('/.dockerenv')) {
-    // Está rodando dentro do container Docker
-    define('DB_HOST', 'db');
-} else {
-    // Está rodando fora do container (WSL/host)
-    // Tenta conectar no container pelo nome
-    define('DB_HOST', 'siteacademia_db');
-}
-
+// Configuração do banco de dados
+// O código PHP roda DENTRO do container, então sempre usa 'db'
+define('DB_HOST', 'db');
 define('DB_NAME', 'sistema_nutricao');
 define('DB_USER', 'user');
 define('DB_PASS', 'password');
