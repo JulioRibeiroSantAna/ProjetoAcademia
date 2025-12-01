@@ -44,6 +44,7 @@ services:
       - "${MYSQL_PORT:-3307}:3306"
     volumes:
       - db_data:/var/lib/mysql
+      - ./sistema_nutricao.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
     networks:
       - siteacademia_network
     command:

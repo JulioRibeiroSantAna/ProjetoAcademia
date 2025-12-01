@@ -28,6 +28,9 @@ function conectarComRetry($maxTentativas = 10, $intervalo = 3) {
             ];
             
             $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
+            $pdo->exec("SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci");
+            $pdo->exec("SET CHARACTER SET utf8mb4");
+            $pdo->exec("SET character_set_connection=utf8mb4");
             $pdo->exec("SET time_zone = '-03:00'");
             
             if ($tentativa > 1) {
