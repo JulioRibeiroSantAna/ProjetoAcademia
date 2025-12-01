@@ -1,31 +1,19 @@
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `agendamentos` (
-  `id_agendamento` int NOT NULL AUTO_INCREMENT,
-  `id_nutricionista` int NOT NULL,
-  `id_usuario` int NOT NULL,
-  `data_hora` datetime NOT NULL,
-  PRIMARY KEY (`id_agendamento`),
-  KEY `id_nutricionista` (`id_nutricionista`),
-  KEY `id_usuario` (`id_usuario`),
-  CONSTRAINT `agendamentos_ibfk_2` FOREIGN KEY (`id_usuario`) REFERENCES `usuarios` (`id_usuario`)
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+CREATE TABLE `usuarios` (
+  `id_usuario` int NOT NULL AUTO_INCREMENT,
+  `nome` varchar(100) NOT NULL,
+  `apelido` varchar(30) NOT NULL,
+  `email` varchar(150) NOT NULL,
+  `senha` varchar(255) NOT NULL,
+  `tipo` enum('admin','usuario','nutricionista') NOT NULL,
+  `telefone` varchar(20) DEFAULT NULL,
+  `foto` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id_usuario`),
+  UNIQUE KEY `email` (`email`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-INSERT INTO `agendamentos` VALUES (6,4,1,'2025-12-06 21:00:00'),(7,3,2,'2025-12-25 22:05:00');
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `horarios_profissionais` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `id_profissional` int NOT NULL,
-  `data_atendimento` date NOT NULL,
-  `hora_inicio` time NOT NULL,
-  `hora_fim` time NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `idx_profissional_data` (`id_profissional`,`data_atendimento`),
-  CONSTRAINT `horarios_profissionais_ibfk_1` FOREIGN KEY (`id_profissional`) REFERENCES `profissionais` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-INSERT INTO `horarios_profissionais` VALUES (6,4,'2025-12-06','21:00:00','21:40:00'),(7,5,'2025-12-12','17:59:00','18:08:00'),(9,3,'2025-12-25','22:05:00','23:05:00');
+INSERT INTO `usuarios` VALUES (1,'Administrador','Admin','admin@mef.com','$2y$10$nqsItPRPFUrI4BR3dcV/PeTMgwVTbQbUdLZB7EwJsltJnJWukf13O','admin','(51) 99329-7009','uploads/usuarios/user_1_1764520312.png'),(2,'User1','User','teste1@gmail.com','$2y$10$c3RxyY3z78oONTkwZb9vTuyWxeg.AFKqlVzkPYFX26dgGOFIXai7O','usuario','(51) 99999-9999','uploads/usuarios/user_2_1764520509.png'),(3,'user2','user','teste2@gmail.com','$2y$10$sYy5oIABURCUTmOlcDsr.uaVjC5W.a2bXe6J7eR9hJd6KnvkDvTZu','usuario','(51) 99999-9998',NULL);
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `profissionais` (
@@ -50,22 +38,6 @@ CREATE TABLE `topicos` (
 ) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 INSERT INTO `topicos` VALUES (1,'Receitas'),(2,'Dicas'),(3,'Exercícios'),(4,'Nutrição'),(5,'Bem-estar'),(6,'Ganho de Massa');
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `usuarios` (
-  `id_usuario` int NOT NULL AUTO_INCREMENT,
-  `nome` varchar(100) NOT NULL,
-  `apelido` varchar(30) NOT NULL,
-  `email` varchar(150) NOT NULL,
-  `senha` varchar(255) NOT NULL,
-  `tipo` enum('admin','usuario','nutricionista') NOT NULL,
-  `telefone` varchar(20) DEFAULT NULL,
-  `foto` varchar(255) DEFAULT NULL,
-  PRIMARY KEY (`id_usuario`),
-  UNIQUE KEY `email` (`email`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-INSERT INTO `usuarios` VALUES (1,'Administrador','Admin','admin@mef.com','$2y$10$nqsItPRPFUrI4BR3dcV/PeTMgwVTbQbUdLZB7EwJsltJnJWukf13O','admin','(51) 99329-7009','uploads/usuarios/user_1_1764520312.png'),(2,'User1','User','teste1@gmail.com','$2y$10$c3RxyY3z78oONTkwZb9vTuyWxeg.AFKqlVzkPYFX26dgGOFIXai7O','usuario','(51) 99999-9999','uploads/usuarios/user_2_1764520509.png'),(3,'user2','user','teste2@gmail.com','$2y$10$sYy5oIABURCUTmOlcDsr.uaVjC5W.a2bXe6J7eR9hJd6KnvkDvTZu','usuario','(51) 99999-9998',NULL);
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `videos` (
@@ -94,3 +66,32 @@ CREATE TABLE `videos_topicos` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 INSERT INTO `videos_topicos` VALUES (1,1),(2,2),(3,3),(4,4),(5,5),(6,6);
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `agendamentos` (
+  `id_agendamento` int NOT NULL AUTO_INCREMENT,
+  `id_nutricionista` int NOT NULL,
+  `id_usuario` int NOT NULL,
+  `data_hora` datetime NOT NULL,
+  PRIMARY KEY (`id_agendamento`),
+  KEY `id_nutricionista` (`id_nutricionista`),
+  KEY `id_usuario` (`id_usuario`),
+  CONSTRAINT `agendamentos_ibfk_2` FOREIGN KEY (`id_usuario`) REFERENCES `usuarios` (`id_usuario`)
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+INSERT INTO `agendamentos` VALUES (6,4,1,'2025-12-06 21:00:00'),(7,3,2,'2025-12-25 22:05:00');
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `horarios_profissionais` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `id_profissional` int NOT NULL,
+  `data_atendimento` date NOT NULL,
+  `hora_inicio` time NOT NULL,
+  `hora_fim` time NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_profissional_data` (`id_profissional`,`data_atendimento`),
+  CONSTRAINT `horarios_profissionais_ibfk_1` FOREIGN KEY (`id_profissional`) REFERENCES `profissionais` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+INSERT INTO `horarios_profissionais` VALUES (6,4,'2025-12-06','21:00:00','21:40:00'),(7,5,'2025-12-12','17:59:00','18:08:00'),(9,3,'2025-12-25','22:05:00','23:05:00');
+
