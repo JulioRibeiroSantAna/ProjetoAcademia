@@ -5,6 +5,13 @@ echo "================================================"
 echo "INICIANDO SISTEMA - MODO UNIVERSAL"
 echo "================================================"
 
+# 0. Carregar variáveis de ambiente personalizadas (se existir)
+if [ -f ".env.docker" ]; then
+    echo "✅ Carregando configurações personalizadas de .env.docker"
+    export $(cat .env.docker | grep -v '^#' | xargs)
+    echo ""
+fi
+
 # 1. Detectar sistema operacional
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
     echo "Sistema detectado: Linux"

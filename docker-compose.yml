@@ -1,11 +1,9 @@
-version: '3.8'
-
 services:
   web:
     build: .
     container_name: siteacademia_web
     ports:
-      - "8080:80"
+      - "${WEB_PORT:-8080}:80"
     volumes:
       - ./:/var/www/html
     depends_on:
@@ -40,7 +38,7 @@ services:
       MYSQL_PASSWORD: password
       TZ: America/Sao_Paulo
     ports:
-      - "3306:3306"
+      - "${MYSQL_PORT:-3306}:3306"
     volumes:
       - db_data:/var/lib/mysql
       - ./docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d:ro
@@ -69,7 +67,7 @@ services:
       PMA_USER: root
       PMA_PASSWORD: root
     ports:
-      - "8081:80"
+      - "${PHPMYADMIN_PORT:-8081}:80"
     depends_on:
       - db
     networks:

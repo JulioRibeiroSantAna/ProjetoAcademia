@@ -19,6 +19,23 @@ chmod +x start.sh
 ./start.sh
 ```
 
+### ⚠️ Se der erro "port is already allocated"
+**Solução:** Alguma porta já está em uso no seu sistema.
+
+```bash
+# Copie o arquivo de exemplo
+cp .env.example .env.docker
+
+# Edite e mude a porta que está ocupada:
+# Exemplo: Se porta 8081 está ocupada, mude para 8082
+nano .env.docker  # ou vim, code, gedit, etc
+```
+
+Depois execute novamente:
+```bash
+./start.sh  # ou .\start.ps1 no Windows
+```
+
 ## 🔑 Credenciais
 
 **Admin:** admin@mef.com / admin123  
