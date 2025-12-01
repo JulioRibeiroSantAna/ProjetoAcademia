@@ -98,10 +98,33 @@ echo ""
 echo "Status dos containers:"
 $COMPOSE_CMD ps
 
-# 10. Testar conexão via curl
+# 10. Aguardar banco estar 100% pronto
+echo ""
+echo "Verificando se banco está configurado..."
+sleep 5
+
+MAX_ATTEMPTS=30
+ATTEMPT=0
+
+while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
+    if docker exec siteacademia_db mysql -uroot -proot sistema_nutricao -e "SELECT 1 FROM usuarios LIMIT 1;" 2>/dev/null; then
+        echo "✅ Banco de dados configurado e pronto!"
+        break
+    fi
+    
+    ATTEMPT=$((ATTEMPT + 1))
+    echo "Tentativa $ATTEMPT/$MAX_ATTEMPTS - Aguardando banco inicializar..."
+    sleep 3
+done
+
+if [ $ATTEMPT -eq $MAX_ATTEMPTS ]; then
+    echo "⚠️  Timeout aguardando banco, mas containers estão rodando"
+    echo "Execute: ./verify-database.sh para verificar manualmente"
+fi
+# 11. Testar conexão via curl
 echo ""
 echo "Testando conexão com o site..."
-sleep 3
+sleep 2
 
 if command -v curl &> /dev/null; then
     if curl -s http://localhost:8080/debug_config.php | grep -q "CONEXÃO ESTABELECIDA"; then
@@ -118,8 +141,7 @@ elif command -v wget &> /dev/null; then
 else
     echo "ℹ️  curl/wget não disponível, pulando teste automático"
 fi
-
-# 11. Informações finais
+# 12. Informações finais
 echo ""
 echo "================================================"
 echo "✅ SISTEMA INICIADO COM SUCESSO!"
@@ -135,8 +157,10 @@ echo "   Admin: admin@mef.com / admin123"
 echo "   User:  teste1@gmail.com / 12345678"
 echo ""
 echo "📋 Comandos úteis:"
-echo "   Ver logs:        $COMPOSE_CMD logs -f"
-echo "   Parar:           $COMPOSE_CMD down"
-echo "   Reiniciar:       $COMPOSE_CMD restart"
+echo "   Ver logs:           $COMPOSE_CMD logs -f"
+echo "   Parar:              $COMPOSE_CMD down"
+echo "   Reiniciar:          $COMPOSE_CMD restart"
+echo "   Verificar banco:    ./verify-database.sh"
 echo ""
+echo "================================================"
 echo "================================================"

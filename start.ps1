@@ -88,9 +88,32 @@ if ($composeCmd -eq "docker-compose") {
     docker compose ps
 }
 
-# 9. Testar conexão
+# 9. Verificar banco configurado
+Write-Host "`nVerificando configuração do banco..." -ForegroundColor Yellow
+Start-Sleep -Seconds 5
+
+$maxAttempts = 30
+$attempt = 0
+
+while ($attempt -lt $maxAttempts) {
+    try {
+        docker exec siteacademia_db mysql -uroot -proot sistema_nutricao -e "SELECT 1 FROM usuarios LIMIT 1;" 2>$null | Out-Null
+        Write-Host "✅ Banco de dados configurado e pronto!" -ForegroundColor Green
+        break
+    } catch {
+        $attempt++
+        Write-Host "Tentativa $attempt/$maxAttempts - Aguardando banco inicializar..." -ForegroundColor Gray
+        Start-Sleep -Seconds 3
+    }
+}
+
+if ($attempt -eq $maxAttempts) {
+    Write-Host "⚠️  Timeout aguardando banco, mas containers estão rodando" -ForegroundColor Yellow
+    Write-Host "Execute: .\verify-database.sh para verificar manualmente" -ForegroundColor Yellow
+}
+# 10. Testar conexão
 Write-Host "`nTestando conexão com o site..." -ForegroundColor Yellow
-Start-Sleep -Seconds 3
+Start-Sleep -Seconds 2
 
 try {
     $response = Invoke-WebRequest -Uri "http://localhost:8080/debug_config.php" -UseBasicParsing
@@ -102,8 +125,7 @@ try {
 } catch {
     Write-Host "⚠️  Não foi possível testar automaticamente" -ForegroundColor Yellow
 }
-
-# 10. Informações finais
+# 11. Informações finais
 Write-Host "`n================================================" -ForegroundColor Cyan
 Write-Host "✅ SISTEMA INICIADO COM SUCESSO!" -ForegroundColor Green
 Write-Host "================================================" -ForegroundColor Cyan
@@ -115,7 +137,9 @@ Write-Host "`n🔑 Credenciais:" -ForegroundColor White
 Write-Host "   Admin: admin@mef.com / admin123" -ForegroundColor Gray
 Write-Host "   User:  teste1@gmail.com / 12345678" -ForegroundColor Gray
 Write-Host "`n📋 Comandos úteis:" -ForegroundColor White
-Write-Host "   Ver logs:        docker-compose logs -f" -ForegroundColor Gray
-Write-Host "   Parar:           docker-compose down" -ForegroundColor Gray
-Write-Host "   Reiniciar:       docker-compose restart" -ForegroundColor Gray
+Write-Host "   Ver logs:           docker-compose logs -f" -ForegroundColor Gray
+Write-Host "   Parar:              docker-compose down" -ForegroundColor Gray
+Write-Host "   Reiniciar:          docker-compose restart" -ForegroundColor Gray
+Write-Host "   Verificar banco:    bash verify-database.sh" -ForegroundColor Gray
+Write-Host "`n================================================" -ForegroundColor Cyan
 Write-Host "`n================================================" -ForegroundColor Cyan
