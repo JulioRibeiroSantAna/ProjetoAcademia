@@ -1,0 +1,21 @@
+# Ignorar arquivos desnecessários no build
+.git/
+.gitignore
+README.md
+INSTALACAO-UNIVERSAL.md
+TROUBLESHOOTING-PORTAS.md
+TROUBLESHOOTING-TABELAS.md
+TROUBLESHOOTING-LINUX.md
+*.md
+.env
+.env.example
+docker-compose.yml
+Dockerfile
+start.sh
+start.ps1
+start.bat
+check-ports.sh
+check-ports.ps1
+test-*.sh
+test-*.ps1
+Materiais/
