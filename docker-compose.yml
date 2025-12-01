@@ -14,6 +14,21 @@ services:
     networks:
       - siteacademia_network
     restart: always
+    environment:
+      - MYSQL_HOST=db
+      - MYSQL_DATABASE=sistema_nutricao
+      - MYSQL_USER=user
+      - MYSQL_PASSWORD=password
+    command: >
+      bash -c "
+      echo 'Aguardando MySQL ficar pronto...';
+      until nc -z db 3306; do
+        echo 'MySQL ainda não está pronto - aguardando...';
+        sleep 2;
+      done;
+      echo 'MySQL está pronto! Iniciando Apache...';
+      apache2-foreground
+      "
 
   db:
     image: mysql:8.0
@@ -30,11 +45,13 @@ services:
       - ./docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
     networks:
       - siteacademia_network
+    command: --default-authentication-plugin=mysql_native_password --skip-name-resolve --explicit_defaults_for_timestamp=ON
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -proot || exit 1"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+      start_period: 30s
     restart: always
 
   phpmyadmin:

@@ -1,6 +1,7 @@
 <?php
 /**
  * Conexão com banco de dados MySQL via PDO
+ * Com retry automático para ambientes Docker
  */
 
 require_once __DIR__ . '/config.php';
@@ -10,16 +11,43 @@ if (!defined('DB_HOST') || !defined('DB_NAME') || !defined('DB_USER') || !define
     die('ERRO CRÍTICO: Constantes do banco de dados não foram definidas. Verifique o arquivo config.php');
 }
 
-try {
-    $dsn = 'mysql:host=' . DB_HOST . ';dbname=' . DB_NAME . ';charset=utf8mb4';
-    $options = [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        PDO::ATTR_EMULATE_PREPARES => false,
-        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-        PDO::ATTR_TIMEOUT => 5
-    ];
+// Função para tentar conectar com retry
+function conectarComRetry($maxTentativas = 10, $intervalo = 2) {
+    $tentativa = 0;
+    $ultimoErro = null;
     
-    $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
+    while ($tentativa < $maxTentativas) {
+        try {
+            $dsn = 'mysql:host=' . DB_HOST . ';dbname=' . DB_NAME . ';charset=utf8mb4';
+            $options = [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_EMULATE_PREPARES => false,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                PDO::ATTR_TIMEOUT => 5,
+                PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4"
+            ];
+            
+            $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
+            return $pdo; // Sucesso!
+            
+        } catch (PDOException $e) {
+            $ultimoErro = $e;
+            $tentativa++;
+            
+            // Se não atingiu o máximo de tentativas, aguarda e tenta novamente
+            if ($tentativa < $maxTentativas) {
+                error_log("Tentativa {$tentativa}/{$maxTentativas} falhou. Aguardando {$intervalo}s...");
+                sleep($intervalo);
+            }
+        }
+    }
+    
+    // Se chegou aqui, todas as tentativas falharam
+    throw $ultimoErro;
+}
+
+try {
+    $pdo = conectarComRetry();
     
 } catch (PDOException $e) {
     $error_msg = 'Erro na conexão com o banco de dados: ' . $e->getMessage();
