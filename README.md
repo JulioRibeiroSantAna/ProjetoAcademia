@@ -1,166 +1,81 @@
-## Credenciais de Acesso
+# 🏥 MEF - Sistema de Gestão de Saúde e Nutrição
 
-### Administrador
-- **Email:** admin@mef.com
-- **Senha:** admin123
-- **Perfil:** Acesso total ao sistema (gerenciar profissionais, vídeos, usuários)
+Sistema web completo para gerenciamento de consultas nutricionais com upload de vídeos educativos.
 
-### Usuário Comum
-- **Email:** teste1@gmail.com
-- **Senha:** 12345678
-- **Perfil:** Acesso a agendamentos, vídeos de apoio e perfil pessoal
+## 🚀 Instalação Rápida
 
-## Como Navegar no Sistema
+### Windows (PowerShell)
+```powershell
+git clone https://github.com/JulioRibeiroSantAna/ProjetoAcademia.git
+cd ProjetoAcademia
+.\start.ps1
+```
 
-### 1. Acesso Inicial
-- Acesse `http://localhost:8080` no navegador
-
-### 2. Como Usuário Comum (teste1@gmail.com)
-Após fazer login, você terá acesso a:
-- **Início:** Página principal com informações do sistema
-- **Profissionais:** Visualize a equipe de profissionais da saúde
-- **Vídeos de Apoio:** Assista vídeos educativos filtrados por categoria
-- **Agendar Consulta:** Marque horários com profissionais
-- **Meus Agendamentos:** Visualize suas consultas marcadas
-- **Perfil:** Edite suas informações pessoais e foto
-
-### 3. Como Administrador (admin@mef.com)
-Além das funcionalidades do usuário, o admin pode:
-- **Gerenciar Profissionais:** Adicionar, editar ou excluir profissionais
-  - Cadastro com foto, especialidade, telefone e biografia
-  - Validação de telefone único
-- **Gerenciar Vídeos:** Upload de vídeos (até 500MB) ou links do YouTube
-  - Adicionar capa/thumbnail para vídeos locais
-  - Organizar por múltiplas categorias
-  - Sistema de filtros estilo YouTube
-- **Visualizar Todos os Agendamentos:** Acompanhe consultas de todos os usuários
-
-### 4. Funcionalidades Principais
-- **Upload de Vídeos:** Suporta arquivos até 500MB com capa personalizada
-- **Filtros Múltiplos:** Selecione várias categorias ao mesmo tempo
-- **Validação de Telefone:** Sistema impede cadastros duplicados
-- **Máscara de Telefone:** Formato automático (51) 99999-9999
-- **Perfis Personalizados:** Upload de foto de perfil para usuários e profissionais
-- **Sistema Responsivo:** Funciona em desktop, tablet e celular
-
-### 5. Dicas de Uso
-- Para adicionar um vídeo local, selecione "Arquivo do PC" e faça upload da capa também
-- Use os filtros por categoria para encontrar vídeos específicos rapidamente
-- Edite seu perfil clicando no ícone do usuário no menu superior
-- Administradores veem botões extras de edição e exclusão nos vídeos e profissionais
-
----
-
-## 🐧 Instalação no WSL/Linux
-
-### Pré-requisitos
-- Docker e Docker Compose instalados
-- WSL 2 (para Windows)
-
-### Passos para Instalação
-
-1. **Clone o repositório:**
+### Linux/WSL/Mac
 ```bash
 git clone https://github.com/JulioRibeiroSantAna/ProjetoAcademia.git
 cd ProjetoAcademia
+chmod +x start.sh
+./start.sh
 ```
 
-2. **Inicie os containers Docker:**
-```bash
-docker-compose up -d
-```
+## 🔑 Credenciais
 
-O sistema usa **healthcheck** no MySQL, então o container web só sobe quando o banco estiver 100% pronto. Você pode acessar imediatamente!
-
-3. **Acesse o sistema:**
-- **Site:** http://localhost:8080
-- **phpMyAdmin:** http://localhost:8081
-  - Usuário: `root`
-  - Senha: `root`
-
-### ⚠️ Troubleshooting WSL/Linux
-
-**Problema: "Connection refused" ou erro de conexão**
-
-**Solução Rápida (Script Automatizado):**
-```bash
-# Dar permissão e executar
-chmod +x test-linux.sh
-./test-linux.sh
-```
-
-**Solução Manual:**
-
-1. **Verificar se Docker está rodando:**
-```bash
-docker info
-# Se der erro, inicie o Docker:
-sudo systemctl start docker
-```
-
-2. **Teste de diagnóstico completo:**
-```bash
-# Acesse no navegador
-http://localhost:8080/debug_config.php
-# Deve mostrar ✅ CONEXÃO ESTABELECIDA
-```
-
-3. **Verificar status dos containers:**
-```bash
-docker-compose ps
-# Deve mostrar db como "healthy"
-```
-
-4. **Rebuild completo (se ainda não funcionar):**
-```bash
-docker-compose down -v
-docker-compose build --no-cache
-docker-compose up -d
-```
-
-5. **Ver logs em tempo real:**
-```bash
-docker-compose logs -f web
-docker-compose logs -f db
-```
-
-📖 **Guia completo de troubleshooting:** Veja `TROUBLESHOOTING-LINUX.md`
-
-**Comandos úteis:**
-```bash
-# Ver portas em uso
-sudo netstat -tulpn | grep -E '8080|3306|8081'
-
-# Entrar no container MySQL
-docker exec -it siteacademia_db mysql -uroot -proot
-
-# Entrar no container PHP
-docker exec -it siteacademia_web bash
-
-# Reiniciar tudo
-docker-compose restart
-```
-
-### Estrutura Docker
-
-O projeto usa 3 containers:
-- **web:** Apache + PHP 8.2
-- **db:** MySQL 8.0 (banco já povoado automaticamente)
-- **phpmyadmin:** Interface web para gerenciar banco
-
-O banco de dados é automaticamente populado com:
-- ✅ 4 profissionais cadastrados
-- ✅ 3 usuários (1 admin + 2 usuários)
-- ✅ Horários e agendamentos de exemplo
-- ✅ Vídeos educativos
+**Admin:** admin@mef.com / admin123  
+**Usuário:** teste1@gmail.com / 12345678  
+**phpMyAdmin:** http://localhost:8081 (root / root)
 
 ---
 
-### Infos Antigas
+## ⚡ Funcionalidades
 
-index: Página de quando o usúario não está logado, ele poderá futuramnte fazer login ou se cadastrar e acessar opções da menubar.
+### Usuários
+- Agendamento de consultas
+- Vídeos educativos com filtros
+- Gerenciamento de perfil
+- Upload de foto
 
-Pasta UsuarioLogado / logado: Nesta página é ondeo usuário Logado poderá acessar o menu que contém também o submenu na opção profissionais, navegando em diversas telas.
+### Administradores
+- Gerenciar profissionais (CRUD completo)
+- Upload de vídeos (500MB) ou links YouTube
+- Thumbnails personalizados
+- Visualizar todos agendamentos
+- Sistema de categorias múltiplas
 
-Pasta AdmLogado  / logado-Adm: Esta página é do Adm, ao invés de adicionar novas telas eu adicionei as telas existentes novas opções seguindo a ideia original do projeto, você pode visualizar isso em videos de apoio e bate-papo.
+---
+
+## 🛠️ Tecnologias
+
+- PHP 8.2 + Apache
+- MySQL 8.0
+- Docker + Docker Compose
+- Bootstrap 5
+- JavaScript ES6+
+
+---
+
+## 📦 Estrutura
+
+```
+web (PHP 8.2 + Apache) → porta 8080
+db (MySQL 8.0) → porta 3306
+phpmyadmin → porta 8081
+```
+
+Sistema com **retry automático** e **healthcheck** - garante conexão em qualquer ambiente!
+
+
+**Debug:**
+- http://localhost:8080/debug_config.php
+- Veja `TROUBLESHOOTING-LINUX.md`
+
+---
+
+## 📝 Banco de Dados
+
+Populado automaticamente com:
+- ✅ 4 profissionais
+- ✅ 3 usuários (1 admin + 2 comuns)
+- ✅ Agendamentos de exemplo
+- ✅ Vídeos educativos
 
