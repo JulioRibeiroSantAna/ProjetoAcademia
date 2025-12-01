@@ -26,49 +26,38 @@ if (strpos($base_url, '/Autenticacao') !== false) {
 define('BASE_URL', $base_url);
 
 // Configuração do banco de dados
-// Detecta automaticamente se está em Docker ou ambiente local
+// Prioridade: Variáveis de ambiente Docker > Arquivo .env > Padrões
 
-// Carrega variáveis do .env se existir
-function carregarEnv() {
-    $envFile = __DIR__ . '/.env';
-    if (file_exists($envFile)) {
-        $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-        foreach ($lines as $line) {
-            if (strpos(trim($line), '#') === 0) continue;
-            
-            list($name, $value) = explode('=', $line, 2);
-            $name = trim($name);
-            $value = trim($value);
-            
-            if (!array_key_exists($name, $_ENV)) {
-                $_ENV[$name] = $value;
-            }
+// Carrega .env se existir (apenas para ambiente local)
+if (file_exists(__DIR__ . '/.env')) {
+    $lines = file(__DIR__ . '/.env', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        if (strpos(trim($line), '#') === 0 || strpos($line, '=') === false) continue;
+        list($key, $val) = explode('=', $line, 2);
+        $key = trim($key);
+        $val = trim($val);
+        if (!isset($_ENV[$key]) && !getenv($key)) {
+            putenv("$key=$val");
+            $_ENV[$key] = $val;
         }
     }
 }
 
-carregarEnv();
+// Detecta ambiente Docker pela presença de variável MYSQL_HOST
+$isDocker = getenv('MYSQL_HOST') !== false || isset($_ENV['MYSQL_HOST']);
 
-// Detecta se está rodando em Docker
-function isDocker() {
-    // Verifica se o hostname 'db' é resolvível (indicador de ambiente Docker)
-    $host = gethostbyname('db');
-    return $host !== 'db'; // Se resolveu, está em Docker
-}
-
-// Define configurações baseado no ambiente
-if (isDocker()) {
-    // Ambiente Docker: usa 'db' como hostname
-    define('DB_HOST', 'db');
-    define('DB_NAME', $_ENV['DB_NAME'] ?? 'sistema_nutricao');
-    define('DB_USER', $_ENV['DB_USER'] ?? 'user');
-    define('DB_PASS', $_ENV['DB_PASS'] ?? 'password');
+if ($isDocker) {
+    // Docker: usa variáveis do docker-compose
+    define('DB_HOST', getenv('MYSQL_HOST') ?: 'db');
+    define('DB_NAME', getenv('MYSQL_DATABASE') ?: 'sistema_nutricao');
+    define('DB_USER', getenv('MYSQL_USER') ?: 'user');
+    define('DB_PASS', getenv('MYSQL_PASSWORD') ?: 'password');
 } else {
-    // Ambiente local (XAMPP/LAMP/etc): usa configurações do .env ou padrões
-    define('DB_HOST', $_ENV['DB_HOST'] ?? 'localhost');
-    define('DB_NAME', $_ENV['DB_NAME'] ?? 'sistema_nutricao');
-    define('DB_USER', $_ENV['DB_USER'] ?? 'root');
-    define('DB_PASS', $_ENV['DB_PASS'] ?? '');
+    // Local: usa .env ou padrões XAMPP
+    define('DB_HOST', getenv('DB_HOST') ?: 'localhost');
+    define('DB_NAME', getenv('DB_NAME') ?: 'sistema_nutricao');
+    define('DB_USER', getenv('DB_USER') ?: 'root');
+    define('DB_PASS', getenv('DB_PASS') ?: '');
 }
 
 define('MIN_PASSWORD_LENGTH', 6);

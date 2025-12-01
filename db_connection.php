@@ -11,38 +11,35 @@ if (!defined('DB_HOST') || !defined('DB_NAME') || !defined('DB_USER') || !define
     die('ERRO CRÍTICO: Constantes do banco de dados não foram definidas. Verifique o arquivo config.php');
 }
 
-// Função para tentar conectar com retry
-function conectarComRetry($maxTentativas = 10, $intervalo = 2) {
-    $tentativa = 0;
+// Função para conectar com retry automático
+function conectarComRetry($maxTentativas = 5, $intervalo = 3) {
     $ultimoErro = null;
     
-    while ($tentativa < $maxTentativas) {
+    for ($tentativa = 1; $tentativa <= $maxTentativas; $tentativa++) {
         try {
             $dsn = 'mysql:host=' . DB_HOST . ';dbname=' . DB_NAME . ';charset=utf8mb4';
             $options = [
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_EMULATE_PREPARES => false,
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-                PDO::ATTR_TIMEOUT => 5,
-                PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4"
+                PDO::ATTR_PERSISTENT => false,
+                PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci"
             ];
             
             $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
-            return $pdo; // Sucesso!
+            $pdo->exec("SET time_zone = '-03:00'");
+            return $pdo;
             
         } catch (PDOException $e) {
             $ultimoErro = $e;
-            $tentativa++;
             
-            // Se não atingiu o máximo de tentativas, aguarda e tenta novamente
             if ($tentativa < $maxTentativas) {
-                error_log("Tentativa {$tentativa}/{$maxTentativas} falhou. Aguardando {$intervalo}s...");
+                error_log("[DB] Tentativa $tentativa/$maxTentativas falhou: " . $e->getMessage());
                 sleep($intervalo);
             }
         }
     }
     
-    // Se chegou aqui, todas as tentativas falharam
     throw $ultimoErro;
 }
 
@@ -50,24 +47,32 @@ try {
     $pdo = conectarComRetry();
     
 } catch (PDOException $e) {
-    $error_msg = 'Erro na conexão com o banco de dados: ' . $e->getMessage();
-    error_log($error_msg);
+    error_log('[DB FATAL] Conexão falhou após ' . $maxTentativas . ' tentativas: ' . $e->getMessage());
     
-    // Mensagem amigável para o usuário
+    $errorCode = $e->getCode();
+    $errorMsg = $e->getMessage();
+    
+    // Mensagens específicas por tipo de erro
+    $solucao = '';
+    if (strpos($errorMsg, 'Unknown database') !== false) {
+        $solucao = 'Banco de dados não existe. Execute: docker-compose down -v && docker-compose up -d';
+    } elseif (strpos($errorMsg, 'Access denied') !== false) {
+        $solucao = 'Usuário ou senha incorretos. Verifique docker-compose.yml';
+    } elseif (strpos($errorMsg, 'Connection refused') !== false || strpos($errorMsg, "Can't connect") !== false) {
+        $solucao = 'MySQL não está rodando. Execute: docker-compose up -d';
+    } else {
+        $solucao = 'Verifique os logs: docker-compose logs db';
+    }
+    
     die('
-    <div style="font-family: Arial; padding: 20px; background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 5px; margin: 20px;">
-        <h2>❌ Erro de Conexão com Banco de Dados</h2>
-        <p><strong>Host:</strong> ' . DB_HOST . '</p>
-        <p><strong>Database:</strong> ' . DB_NAME . '</p>
-        <p><strong>Erro:</strong> ' . htmlspecialchars($e->getMessage()) . '</p>
-        <hr>
-        <h3>Soluções:</h3>
-        <ol>
-            <li>Verifique se os containers estão rodando: <code>docker-compose ps</code></li>
-            <li>Aguarde o MySQL iniciar completamente (30-60 segundos)</li>
-            <li>Veja os logs: <code>docker-compose logs db</code></li>
-            <li>Reinicie os containers: <code>docker-compose down && docker-compose up -d</code></li>
-        </ol>
+    <div style="font-family: monospace; padding: 20px; background: #1a1a1a; color: #ff6b6b; border-left: 4px solid #ff6b6b; margin: 20px;">
+        <h2 style="color: #ff6b6b; margin: 0 0 15px 0;">⚠ Database Connection Failed</h2>
+        <p style="margin: 5px 0;"><strong>Host:</strong> <code style="background: #2a2a2a; padding: 2px 6px;">' . DB_HOST . '</code></p>
+        <p style="margin: 5px 0;"><strong>Database:</strong> <code style="background: #2a2a2a; padding: 2px 6px;">' . DB_NAME . '</code></p>
+        <p style="margin: 5px 0;"><strong>User:</strong> <code style="background: #2a2a2a; padding: 2px 6px;">' . DB_USER . '</code></p>
+        <hr style="border: 1px solid #333; margin: 15px 0;">
+        <p style="margin: 5px 0;"><strong>Error:</strong> ' . htmlspecialchars($errorMsg) . '</p>
+        <p style="margin: 5px 0;"><strong>Solution:</strong> ' . $solucao . '</p>
     </div>
     ');
 }

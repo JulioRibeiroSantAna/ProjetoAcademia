@@ -36,7 +36,6 @@ services:
       MYSQL_DATABASE: sistema_nutricao
       MYSQL_USER: user
       MYSQL_PASSWORD: password
-      TZ: America/Sao_Paulo
     ports:
       - "${MYSQL_PORT:-3306}:3306"
     volumes:
@@ -44,19 +43,17 @@ services:
       - ./docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d:ro
     networks:
       - siteacademia_network
-    command: >
-      --default-authentication-plugin=mysql_native_password
-      --skip-name-resolve
-      --explicit_defaults_for_timestamp=ON
-      --character-set-server=utf8mb4
-      --collation-server=utf8mb4_unicode_ci
-      --init-file=/docker-entrypoint-initdb.d/sistema_nutricao.sql
+    command:
+      - --default-authentication-plugin=mysql_native_password
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --init-file=/docker-entrypoint-initdb.d/sistema_nutricao.sql
     healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -proot && mysql -uroot -proot -e 'USE sistema_nutricao; SELECT 1 FROM usuarios LIMIT 1;' || exit 1"]
-      interval: 5s
-      timeout: 5s
-      retries: 30
-      start_period: 40s
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+      start_period: 30s
     restart: always
 
   phpmyadmin:
