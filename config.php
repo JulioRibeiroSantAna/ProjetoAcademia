@@ -43,21 +43,43 @@ if (file_exists(__DIR__ . '/.env')) {
     }
 }
 
-// Detecta ambiente Docker pela presença de variável MYSQL_HOST
-$isDocker = getenv('MYSQL_HOST') !== false || isset($_ENV['MYSQL_HOST']);
+// Detecta ambiente Docker (múltiplas verificações)
+$isDocker = (
+    getenv('MYSQL_HOST') !== false || 
+    isset($_ENV['MYSQL_HOST']) ||
+    getenv('DB_HOST') === 'db' ||
+    isset($_ENV['DB_HOST']) && $_ENV['DB_HOST'] === 'db' ||
+    file_exists('/.dockerenv')
+);
 
 if ($isDocker) {
-    // Docker: usa variáveis do docker-compose
-    define('DB_HOST', getenv('MYSQL_HOST') ?: 'db');
-    define('DB_NAME', getenv('MYSQL_DATABASE') ?: 'sistema_nutricao');
-    define('DB_USER', getenv('MYSQL_USER') ?: 'user');
-    define('DB_PASS', getenv('MYSQL_PASSWORD') ?: 'password');
+    // Docker: tenta múltiplas variáveis
+    define('DB_HOST', 
+        getenv('DB_HOST') ?: 
+        getenv('MYSQL_HOST') ?: 
+        ($_ENV['DB_HOST'] ?? ($_ENV['MYSQL_HOST'] ?? 'db'))
+    );
+    define('DB_NAME', 
+        getenv('DB_NAME') ?: 
+        getenv('MYSQL_DATABASE') ?: 
+        ($_ENV['DB_NAME'] ?? ($_ENV['MYSQL_DATABASE'] ?? 'sistema_nutricao'))
+    );
+    define('DB_USER', 
+        getenv('DB_USER') ?: 
+        getenv('MYSQL_USER') ?: 
+        ($_ENV['DB_USER'] ?? ($_ENV['MYSQL_USER'] ?? 'user'))
+    );
+    define('DB_PASS', 
+        getenv('DB_PASS') ?: 
+        getenv('MYSQL_PASSWORD') ?: 
+        ($_ENV['DB_PASS'] ?? ($_ENV['MYSQL_PASSWORD'] ?? 'password'))
+    );
 } else {
     // Local: usa .env ou padrões XAMPP
-    define('DB_HOST', getenv('DB_HOST') ?: 'localhost');
-    define('DB_NAME', getenv('DB_NAME') ?: 'sistema_nutricao');
-    define('DB_USER', getenv('DB_USER') ?: 'root');
-    define('DB_PASS', getenv('DB_PASS') ?: '');
+    define('DB_HOST', getenv('DB_HOST') ?: ($_ENV['DB_HOST'] ?? 'localhost'));
+    define('DB_NAME', getenv('DB_NAME') ?: ($_ENV['DB_NAME'] ?? 'sistema_nutricao'));
+    define('DB_USER', getenv('DB_USER') ?: ($_ENV['DB_USER'] ?? 'root'));
+    define('DB_PASS', getenv('DB_PASS') ?: ($_ENV['DB_PASS'] ?? ''));
 }
 
 define('MIN_PASSWORD_LENGTH', 6);

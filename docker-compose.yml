@@ -17,6 +17,10 @@ services:
       - MYSQL_DATABASE=sistema_nutricao
       - MYSQL_USER=user
       - MYSQL_PASSWORD=password
+      - DB_HOST=db
+      - DB_NAME=sistema_nutricao
+      - DB_USER=user
+      - DB_PASS=password
     command: >
       bash -c "
       echo 'Aguardando MySQL ficar pronto...';
@@ -50,10 +54,10 @@ services:
       - --init-file=/docker-entrypoint-initdb.d/sistema_nutricao.sql
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
-      interval: 3s
-      timeout: 3s
-      retries: 20
-      start_period: 30s
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 60s
     restart: always
 
   phpmyadmin:

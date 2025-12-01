@@ -12,7 +12,7 @@ if (!defined('DB_HOST') || !defined('DB_NAME') || !defined('DB_USER') || !define
 }
 
 // Função para conectar com retry automático
-function conectarComRetry($maxTentativas = 5, $intervalo = 3) {
+function conectarComRetry($maxTentativas = 10, $intervalo = 3) {
     $ultimoErro = null;
     
     for ($tentativa = 1; $tentativa <= $maxTentativas; $tentativa++) {
@@ -23,11 +23,17 @@ function conectarComRetry($maxTentativas = 5, $intervalo = 3) {
                 PDO::ATTR_EMULATE_PREPARES => false,
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
                 PDO::ATTR_PERSISTENT => false,
-                PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci"
+                PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci",
+                PDO::ATTR_TIMEOUT => 10
             ];
             
             $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
             $pdo->exec("SET time_zone = '-03:00'");
+            
+            if ($tentativa > 1) {
+                error_log("[DB] Conectado com sucesso na tentativa $tentativa");
+            }
+            
             return $pdo;
             
         } catch (PDOException $e) {
@@ -47,7 +53,7 @@ try {
     $pdo = conectarComRetry();
     
 } catch (PDOException $e) {
-    error_log('[DB FATAL] Conexão falhou após ' . $maxTentativas . ' tentativas: ' . $e->getMessage());
+    error_log('[DB FATAL] Conexão falhou após 10 tentativas: ' . $e->getMessage());
     
     $errorCode = $e->getCode();
     $errorMsg = $e->getMessage();
