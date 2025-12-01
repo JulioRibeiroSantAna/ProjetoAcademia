@@ -1,4 +1,5 @@
 <?php
+header('Content-Type: text/html; charset=UTF-8');
 /**
  * ARQUIVO: videos-apoio.php
  * Página para assistir vídeos educativos

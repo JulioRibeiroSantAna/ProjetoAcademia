@@ -1,4 +1,5 @@
 <?php
+header('Content-Type: text/html; charset=UTF-8');
 /**
  * ARQUIVO: editar-perfil-Adm.php
  * Editar dados do perfil do admin

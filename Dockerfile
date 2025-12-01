@@ -40,7 +40,8 @@ RUN echo "<VirtualHost *:80>\n\
     </Directory>\n\
 </VirtualHost>" > /etc/apache2/sites-available/000-default.conf
 
-# Copia o conteúdo do projeto para dentro do container
+
+# Copia o conteúdo do projeto para dentro do container, exceto o arquivo SQL que já é montado no compose
 COPY . /var/www/html/
 
 # Define variável de ambiente para indicar que está no Docker
