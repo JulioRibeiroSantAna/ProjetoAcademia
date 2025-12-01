@@ -26,11 +26,50 @@ if (strpos($base_url, '/Autenticacao') !== false) {
 define('BASE_URL', $base_url);
 
 // Configuração do banco de dados
-// O código PHP roda DENTRO do container, então sempre usa 'db'
-define('DB_HOST', 'db');
-define('DB_NAME', 'sistema_nutricao');
-define('DB_USER', 'user');
-define('DB_PASS', 'password');
+// Detecta automaticamente se está em Docker ou ambiente local
+
+// Carrega variáveis do .env se existir
+function carregarEnv() {
+    $envFile = __DIR__ . '/.env';
+    if (file_exists($envFile)) {
+        $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        foreach ($lines as $line) {
+            if (strpos(trim($line), '#') === 0) continue;
+            
+            list($name, $value) = explode('=', $line, 2);
+            $name = trim($name);
+            $value = trim($value);
+            
+            if (!array_key_exists($name, $_ENV)) {
+                $_ENV[$name] = $value;
+            }
+        }
+    }
+}
+
+carregarEnv();
+
+// Detecta se está rodando em Docker
+function isDocker() {
+    // Verifica se o hostname 'db' é resolvível (indicador de ambiente Docker)
+    $host = gethostbyname('db');
+    return $host !== 'db'; // Se resolveu, está em Docker
+}
+
+// Define configurações baseado no ambiente
+if (isDocker()) {
+    // Ambiente Docker: usa 'db' como hostname
+    define('DB_HOST', 'db');
+    define('DB_NAME', $_ENV['DB_NAME'] ?? 'sistema_nutricao');
+    define('DB_USER', $_ENV['DB_USER'] ?? 'user');
+    define('DB_PASS', $_ENV['DB_PASS'] ?? 'password');
+} else {
+    // Ambiente local (XAMPP/LAMP/etc): usa configurações do .env ou padrões
+    define('DB_HOST', $_ENV['DB_HOST'] ?? 'localhost');
+    define('DB_NAME', $_ENV['DB_NAME'] ?? 'sistema_nutricao');
+    define('DB_USER', $_ENV['DB_USER'] ?? 'root');
+    define('DB_PASS', $_ENV['DB_PASS'] ?? '');
+}
 
 define('MIN_PASSWORD_LENGTH', 6);
 define('MAX_LOGIN_ATTEMPTS', 5);
