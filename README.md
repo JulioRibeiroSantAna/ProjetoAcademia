@@ -78,51 +78,67 @@ O sistema usa **healthcheck** no MySQL, então o container web só sobe quando o
   - Usuário: `root`
   - Senha: `root`
 
-### Troubleshooting WSL
+### ⚠️ Troubleshooting WSL/Linux
 
-**Erro "Connection refused" ao acessar o site:**
+**Problema: "Connection refused" ou erro de conexão**
 
-1. **Teste a conexão:**
+**Solução Rápida (Script Automatizado):**
 ```bash
-# Acesse para diagnóstico completo
-http://localhost:8080/debug_config.php
+# Dar permissão e executar
+chmod +x test-linux.sh
+./test-linux.sh
 ```
 
-2. **Verifique containers:**
+**Solução Manual:**
+
+1. **Verificar se Docker está rodando:**
+```bash
+docker info
+# Se der erro, inicie o Docker:
+sudo systemctl start docker
+```
+
+2. **Teste de diagnóstico completo:**
+```bash
+# Acesse no navegador
+http://localhost:8080/debug_config.php
+# Deve mostrar ✅ CONEXÃO ESTABELECIDA
+```
+
+3. **Verificar status dos containers:**
 ```bash
 docker-compose ps
-# Todos devem estar "Up" e "healthy"
+# Deve mostrar db como "healthy"
 ```
 
-3. **Reconstrua os containers:**
+4. **Rebuild completo (se ainda não funcionar):**
 ```bash
 docker-compose down -v
 docker-compose build --no-cache
 docker-compose up -d
 ```
 
-4. **Ver logs de erro:**
-```bash
-docker-compose logs web
-docker-compose logs db
-```
-
-**Portas em uso:**
-```bash
-# Verifica se portas estão disponíveis
-sudo netstat -tulpn | grep -E '8080|3306|8081'
-```
-
-**Recriar do zero:**
-```bash
-docker-compose down -v
-docker-compose up -d
-```
-
-**Ver logs de erro:**
+5. **Ver logs em tempo real:**
 ```bash
 docker-compose logs -f web
 docker-compose logs -f db
+```
+
+📖 **Guia completo de troubleshooting:** Veja `TROUBLESHOOTING-LINUX.md`
+
+**Comandos úteis:**
+```bash
+# Ver portas em uso
+sudo netstat -tulpn | grep -E '8080|3306|8081'
+
+# Entrar no container MySQL
+docker exec -it siteacademia_db mysql -uroot -proot
+
+# Entrar no container PHP
+docker exec -it siteacademia_web bash
+
+# Reiniciar tudo
+docker-compose restart
 ```
 
 ### Estrutura Docker
