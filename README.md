@@ -4,6 +4,24 @@ Sistema web completo para gerenciamento de consultas nutricionais com upload de 
 
 ## 🚀 Instalação Rápida
 
+### ⚠️ IMPORTANTE: Primeira instalação ou problemas com banco
+
+Se as tabelas não estão sendo criadas, execute:
+
+```bash
+# Linux/Mac
+docker compose down -v   # -v remove volumes antigos
+docker compose up -d
+
+# Windows PowerShell
+docker-compose down -v
+docker-compose up -d
+```
+
+**O `-v` é essencial!** Remove volumes antigos e força recriação do banco.
+
+---
+
 ### Windows (PowerShell)
 ```powershell
 git clone https://github.com/JulioRibeiroSantAna/ProjetoAcademia.git
